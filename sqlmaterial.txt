@@ -1,0 +1,46 @@
+create table materialTypes(name text primary key, description text);
+insert into  materialTypes (name, description) values ('gase', 'gases materials'), ('liquid', 'liquid'),('solid', 'solid materials');
+
+create table materials(name text primary key, materialTypes_name text references materialTypes(name),  description text)
+insert into materials(name, materialTypes_name) values ('air','gase'), ('water','liquid'), ('steel','solid'), ('carbon','solid');
+
+create table properties (name text primary key, description text);
+insert into properties(name) values ('ro'),('E'),('nu'),('E11');
+
+create table models(name text primary key, description text);
+insert into models(name, description) values ('IsoElst','isotropic elasticity');
+
+create table modelComposition(models_name text references models(name), properties_name references properties(name)); 
+insert into modelComposition(models_name, properties_name) values ('IsoElst', 'E'), ('IsoElst', 'nu'), ('IsoElst', 'E11');
+
+create table materialsModels(materials_name text references materials(name) , models_name text references models(name), primary key(materials_name, models_name));
+insert into materialsModels(models_name, materials_name) values ('IsoElst', 'steel'), ('IsoElst', 'carbon');
+
+create table propertyType(name text primary key, description text);
+insert into propertyType(name) values ('scalar'),('graph'),('file');
+
+create table propertyValueScalar (materials_name references materials(name), properties_name references properties(name), value double not null, primary key (materials_name , properties_name ));
+insert into propertyValueScalar (materials_name, properties_name, value) values ('steel', 'E11', 196.5), ('steel', 'nu', 0.2635),  ('carbon', 'E11', 450), ('carbon', 'nu', 0.25);
+select allProp.materials_name as material, allProp.models_name as model, properties_name as property, value
+	from 
+	(select materials_name, models_name , propertyValueScalar.properties_name, value, models_name 
+		from 
+		propertyValueScalar join modelComposition 
+			on propertyValueScalar.properties_name = modelComposition.properties_name ) 
+	as allProp 
+	join materialsModels on 
+		allProp.materials_name = materialsModels.materials_name and  
+		allProp.models_name = materialsModels.models_name
+	where materialsModels.models_name = 'IsoElst' and materialsModels.materials_name = 'carbon';
+
+create table propertyValueGraph (materials_name references materials(name), properties_name references properties(name), valueX double not null, valueY double not null, primary key (materials_name , properties_name, valueX ))
+
+create table propertyValueFile (materials_name references materials(name), properties_name references properties(name),fileName unique not null, primary key (materials_name , properties_name))
+
+
+
+DELETE from materials WHERE name = '1';
+DELETE from materialTypes WHERE name = '1';
+PRAGMA foreign_keys = on;
+
+

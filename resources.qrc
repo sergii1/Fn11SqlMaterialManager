@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/new/tools">
+    <qresource prefix="/">
         <file>resources/addDB.png</file>
         <file>resources/ConnectDB.png</file>
         <file>resources/export.png</file>

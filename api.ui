@@ -1,6 +1,6 @@
 <ui version="4.0">
- <class>api</class>
- <widget class="QMainWindow" name="api" >
+ <class>API</class>
+ <widget class="QMainWindow" name="API" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>api</string>
+   <string>API</string>
   </property>
   <widget class="QMenuBar" name="menuBar" />
   <widget class="QToolBar" name="mainToolBar" />

@@ -4,8 +4,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    api w;
-    w.show();
-
+    API w;
+    w.showMaximized();
     return a.exec();
 }

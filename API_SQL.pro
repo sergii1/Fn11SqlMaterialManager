@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,11 +24,27 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        main.cpp \
-        api.cpp
+        api.cpp \
+    cls_command_form.cpp \
+    cls_connectionform.cpp \
+    cls_export_form.cpp \
+    cls_insert_form.cpp \
+    cls_libtreeitem.cpp \
+    main.cpp \
+    qrvztreemodel.cpp
 
 HEADERS += \
-        api.h
+        api.h \
+    cls_command_form.h \
+    cls_connectionform.h \
+    cls_export_form.h \
+    cls_insert_form.h \
+    cls_libtreeitem.h \
+    labtreemodel.h \
+    qrvztreemodel.h
 
 FORMS += \
-        api.ui
+        api.ui \
+
+RESOURCES += \
+    icons.qrc
