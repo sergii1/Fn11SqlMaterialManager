@@ -1,10 +1,13 @@
 <RCC>
     <qresource prefix="/new/tools">
-        <file>resources/addDB.png</file>
-        <file>resources/ConnectDB.png</file>
-        <file>resources/export.png</file>
-        <file>resources/import.png</file>
         <file>resources/SQL.png</file>
         <file>resources/sqldevops.png</file>
+        <file>resources/addData.png</file>
+        <file>resources/addDB.png</file>
+        <file>resources/FAQ.png</file>
+        <file>resources/global.png</file>
+        <file>resources/local.png</file>
+        <file>resources/export.png</file>
+        <file>resources/import.png</file>
     </qresource>
 </RCC>

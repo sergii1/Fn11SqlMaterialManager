@@ -1,6 +1,6 @@
 #include "cls_command_form.h"
 
-cls_command_form::cls_command_form(QWidget *parent):QWidget(parent){
+cls_command_form::cls_command_form(QWidget* ptr, QWidget *parent):QWidget(parent){
     dck_command_wdgt = new QDockWidget();
     command_text = new QTextEdit();
     command_res = new QLabel();
@@ -20,7 +20,7 @@ cls_command_form::cls_command_form(QWidget *parent):QWidget(parent){
     //layout->setColumnStretch(0,1);
     wgt -> setLayout(layout);
     dck_command_wdgt->setWidget(wgt);
-    connect(submit,SIGNAL(clicked()),parent,SLOT(run_command()));
+    connect(submit,SIGNAL(clicked()),ptr,SLOT(run_command()));
 }
 
 cls_command_form::~cls_command_form(){

@@ -7,8 +7,13 @@
 #include <QtSql/QSqlError>
 #include <QDebug>
 #include <QCommonStyle>
+#include <QListWidget>
+#include <QTableView>
 #include <QSqlQuery>
+#include <QTreeWidget>
+#include <QCommandLinkButton>
 #include <QSqlTableModel>
+#include <QTreeWidgetItem>
 #include<QList>
 #include <QSqlDriver>
 #include <QStringListModel>
@@ -71,6 +76,7 @@ private:
     QAction* pactDeleteMat;
     QAction* pactDeleteModel;
     QAction* pactSQLQuery;
+    QAction* pactFAQ;
 
     QString newLib;
     QTextEdit* InputLib;
@@ -105,6 +111,8 @@ public slots:
     void TabAddToView(QListWidgetItem*);
     void run_command();
     void update_table_view();
+
+    void slotAbout();
 signals:
     void connection_is_created();
     void need_update_table_view();
