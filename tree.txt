@@ -1,0 +1,8 @@
+CREATE TABLE tree(path ltree);
+INSERT INTO tree VALUES ('Schemes');
+INSERT INTO tree VALUES ('Schemes.Sch_1');
+INSERT INTO tree VALUES ('Schemes.Sch_1.natural');
+INSERT INTO tree VALUES ('Schemes.Sch_1.artificial');
+INSERT INTO tree VALUES ('Schemes.Sch_2');
+CREATE INDEX path_gist_idx ON tree USING GIST (path);
+CREATE INDEX path_idx ON tree USING BTREE (path);

@@ -1,0 +1,6 @@
+CREATE TABLE schemes(scheme text not null unique, description text not null ,PRIMARY KEY(scheme));
+INSERT INTO schemes(scheme) VALUES ('Sch_1'), ('Sch_2');
+CREATE TABLE material_scheme(scheme text not null REFERENCES schemes(scheme), branch text, id_material text not null REFERENCES materials(name), PRIMARY KEY(scheme,id_material));
+INSERT INTO material_scheme(scheme, branch, id_material) VALUES ('Sch_1', 'Schemes.Sch_1.artificial' ,'steel'), ('Sch_1', 'Schemes.Sch_1.natural' ,'water');
+
+

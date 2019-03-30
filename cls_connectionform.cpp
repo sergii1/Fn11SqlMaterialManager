@@ -42,7 +42,7 @@ cls_connectionForm::cls_connectionForm(QWidget *parent):QDialog(parent){
     m_VLayout->addWidget(pbtnConnect);
 
     setLayout(m_VLayout);
-    setFixedSize(400,400);
+    resize(400,400);
 }
 
 

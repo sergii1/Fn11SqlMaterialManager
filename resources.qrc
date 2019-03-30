@@ -1,9 +1,17 @@
 <RCC>
     <qresource prefix="/">
+        <file>resources/addData.png</file>
         <file>resources/addDB.png</file>
         <file>resources/ConnectDB.png</file>
         <file>resources/export.png</file>
+        <file>resources/FAQ.png</file>
+        <file>resources/global.png</file>
+        <file>resources/global_database-512.png</file>
+        <file>resources/iconfinder_Database_65996.png</file>
+        <file>resources/iconfinder_Web_Database_66065.png</file>
         <file>resources/import.png</file>
+        <file>resources/local.png</file>
+        <file>resources/localdb.png</file>
         <file>resources/SQL.png</file>
         <file>resources/sqldevops.png</file>
     </qresource>

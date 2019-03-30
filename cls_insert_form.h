@@ -17,6 +17,7 @@ public:
     explicit cls_insert_form(QWidget *parent = nullptr);
     void closeEvent(QCloseEvent*);
     ~cls_insert_form();
+private:
     QStringListModel* model;
     QGridLayout* layout;
     QListWidget* tbl_list;

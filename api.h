@@ -21,6 +21,7 @@
 #include "cls_connectionform.h"
 #include "cls_insert_form.h"
 #include "cls_export_form.h"
+#include "sh_tree.h"
 
 namespace Ui {
 class API;
@@ -50,6 +51,7 @@ private:
     QSqlDatabase global_db;
     QSqlDatabase local_db;
 
+    QTreeView* Tree;
     QTreeWidget* Lib;
     QTableView* Mat;
     QTableView* Model;
@@ -85,7 +87,15 @@ private:
     bool flagSQLQuery;
 
     void setColumnWidth();
+    QString get_full_path(const QModelIndex& index);
 public slots:
+
+    void slot_my_context_menu(const QPoint&);
+
+    void slot_add_classification();
+    void slot_add_branch();
+    void slot_add_material();
+
     void slotFormConnection();
     void slotConnection();
 

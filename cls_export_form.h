@@ -9,7 +9,7 @@ class cls_export_form : public QDialog
     Q_OBJECT
 public:
     explicit cls_export_form(QStringList& lst,QWidget *parent = nullptr);
-
+private:
     QGridLayout layout;
     QLineEdit InputLib;
     QPushButton pbntOK;

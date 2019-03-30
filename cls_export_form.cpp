@@ -21,7 +21,7 @@ cls_export_form::cls_export_form(QStringList& lst, QWidget *parent) : QDialog(pa
     pbntOK.setText("OK");
     layout.addWidget(&pbntOK,3,0,Qt::AlignCenter);
     setLayout(&layout);
-    setFixedSize(475,150);
+    resize(475,150);
 
     connect(&add_libMode,SIGNAL(clicked()),this,SLOT(slot_choose_mode()));
     connect(&not_add_libMode,SIGNAL(clicked()),this,SLOT(slot_choose_mode()));
