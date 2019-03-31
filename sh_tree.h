@@ -25,6 +25,8 @@ public:
                       const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
 
+    TreeItem* getRootItem() const;
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
@@ -41,10 +43,9 @@ public:
                     const QModelIndex &parent = QModelIndex()) override;
     bool removeRows(int position, int rows,
                     const QModelIndex &parent = QModelIndex()) override;
-
+    void addData(const QStringList &lines, TreeItem *parent, int i = 0);
 private:
     void setupModelData(QSqlDatabase& global_db, TreeItem *parent);
-    void addData(const QStringList &lines, TreeItem *parent, int i = 0);
     TreeItem *getItem(const QModelIndex &index) const;
 
     TreeItem *rootItem;

@@ -7,11 +7,7 @@ API::API(QWidget *parent) :
     QMainWindow(parent)
    // ui(new Ui::API)
 {
-    //setStyle(QStyleFactory::create("Fusion"));
-    //setWindowModality(Qt::WindowModal);
     setWindowIcon(QIcon(":resources/sqldevops.png"));
-    //setStyleSheet("centralWidget {background: yellow; width: 10px; height: 10px; / when horizontal */}centralWidget:hover {background: red;}");
-    //ui->setupUi(this);
     m_Layout = new QGridLayout;
     flagImport=false;
     flagSQLQuery = false;
@@ -39,6 +35,7 @@ API::API(QWidget *parent) :
     Properties = new QTableView();
 
     tabLib = new QDockWidget;
+    tabLib->setMaximumWidth(250);
     tabLib->setWindowTitle("Классификация материалов");
     tabLib->setAllowedAreas(Qt::LeftDockWidgetArea);
     tabLib->setFeatures(QDockWidget::DockWidgetMovable);
@@ -267,6 +264,7 @@ void API::slot_my_context_menu(const QPoint& pos){
             QAction* pAct_remove_branch = new QAction("Удалить ветку");
             QAction* pAct_add_branch = new QAction("Добавить ветку");
             QAction* pAct_add_material = new QAction("Добавить материал");
+            context_menu->addAction(pAct_remove_branch);
             context_menu->addAction(pAct_add_branch);
             context_menu->addAction(pAct_add_material);
             connect(pAct_remove_branch,SIGNAL(triggered()),this, SLOT(slot_remove_branch()));
@@ -282,21 +280,39 @@ void API::slot_my_context_menu(const QPoint& pos){
 void API::slot_remove_classification(){
     if(!Tree->currentIndex().isValid())
         return;
-    qDebug()<<"remove classifications "<<get_full_path(Tree->currentIndex());
+    QString path = get_full_path(Tree->currentIndex());
+    qDebug()<<"remove classifications "<< path;
+    QSqlQuery q(global_db);
+    q.exec("DELETE FROM tree WHERE path = '" + path + "';");
+    qDebug() << q.lastError();
+    TreeModel* model = (TreeModel*)Tree->model();
+    model->addData(path.split(QString(".")), model->getRootItem());
+    QStringList headers;
+    headers << tr("Title") << tr("Description");
+    Tree->setModel(new TreeModel(headers, global_db));
+    Tree->setColumnWidth(0, 250);
 }
 
 void API::slot_remove_branch(){
     if(!Tree->currentIndex().isValid())
         return;
-    qDebug()<<"remove branch "<<get_full_path(Tree->currentIndex());
+    QString path = get_full_path(Tree->currentIndex());
+    qDebug()<<"remove branch "<< path;
+    QSqlQuery q(global_db);
+    q.exec("DELETE FROM tree WHERE path = '" + path + "';");
+    qDebug() << q.lastError();
+    TreeModel* model = (TreeModel*)Tree->model();
+    model->addData(path.split(QString(".")), model->getRootItem());
+    QStringList headers;
+    headers << tr("Title") << tr("Description");
+    Tree->setModel(new TreeModel(headers, global_db));
+    Tree->setColumnWidth(0, 250);
 }
+
 void API::slot_add_classification(){
     if(!Tree->currentIndex().isValid())
         return;
     qDebug()<<"classification "<<get_full_path(Tree->currentIndex());
-   // QString str = QInputDialog::getText(nullptr, "добавление классфикации", "name", QLineEdit::Normal, "new classification");
-   // qDebug()<<str;
-
     QInputDialog inputDialog;
     inputDialog.resize(400,140);
     inputDialog.setWindowTitle("Добавление классфикации");
@@ -310,9 +326,15 @@ void API::slot_add_classification(){
     if(!ok)
         return;
     QString str = inputDialog.textValue();
-    //QString str = QInputDialog::getText(nullptr, "добавление ветки", "name", QLineEdit::Normal, "new branch");
     qDebug()<<str;
-
+    QSqlQuery q(global_db);
+    q.exec("INSERT INTO tree(path) VALUES ('" + get_full_path(Tree->currentIndex()) + "." + str + "');");
+    qDebug() << q.lastError();
+    TreeModel* model = (TreeModel*)Tree->model();
+    model->addData(str.split(QString(".")), model->getRootItem());
+    QStringList headers;
+    headers << tr("Title") << tr("Description");
+    Tree->setModel(new TreeModel(headers, global_db));
 }
 
 void API::slot_add_branch(){
@@ -332,15 +354,22 @@ void API::slot_add_branch(){
      if(!ok)
          return;
      QString str = inputDialog.textValue();
-     //QString str = QInputDialog::getText(nullptr, "добавление ветки", "name", QLineEdit::Normal, "new branch");
      qDebug()<<str;
+     QSqlQuery q(global_db);
+     q.exec("INSERT INTO tree(path) VALUES ('" + get_full_path(Tree->currentIndex()) + "." + str + "');");
+     qDebug() << q.lastError();
+     TreeModel* model = (TreeModel*)Tree->model();
+     model->addData(str.split(QString(".")), model->getRootItem());
+     QStringList headers;
+     headers << tr("Title") << tr("Description");
+     Tree->setModel(new TreeModel(headers, global_db));
+     Tree->setColumnWidth(0, 250);
 }
 
 void API::slot_add_material(){
     if(!Tree->currentIndex().isValid())
         return;
     qDebug()<<"Material  "<<get_full_path(Tree->currentIndex());
-    //QString str = QInputDialog::getText(nullptr, "добавление материала", "name", QLineEdit::Normal, "new material");
 
     QInputDialog inputDialog;
     inputDialog.resize(400,140);
@@ -355,7 +384,6 @@ void API::slot_add_material(){
     if(!ok)
         return;
     QString str = inputDialog.textValue();
-    //QString str = QInputDialog::getText(nullptr, "добавление ветки", "name", QLineEdit::Normal, "new branch");
     qDebug()<<str;
 
 }
@@ -363,32 +391,25 @@ void API::slot_add_material(){
 QString API::get_full_path(const QModelIndex& index){
       QStringList res;
       QStringList lst = index.data().toStringList();
-      //res += lst;
       for(auto a:lst){
-         // qDebug()<<a;
         res+=a;
       }
 
       QModelIndex p_id = index;
       while(p_id.parent().isValid()){
           p_id = p_id.parent();
-         // qDebug()<<"parent:";
           lst = p_id.data().toStringList();
           for(auto a:lst){
                  res += a;
-             //    qDebug()<<a;
           }
       }
 
-      //qDebug()<<"res";
       QString path;
       for(int i = res.length()-1; i!=0; i--){
-            //qDebug()<<res[i];
             path += res[i] + ".";
       }
 
       path += res[0];
-      //qDebug()<<path;
       return path;
 }
 
@@ -397,9 +418,6 @@ void API::slotFormConnection()
     connectionForm = new cls_connectionForm();
     connectionForm->setWindowIcon(QIcon(":resources/addDB.png"));
     connect(connectionForm->pbtnConnect,SIGNAL(clicked()), this, SLOT(slotConnection()));
-   // connectionForm->setWindowTitle(("Подключение к БД"));
-    //connectionForm->dck_formConnection->show();
-    //this->addDockWidget(Qt::BottomDockWidgetArea,connectionForm->dck_formConnection);
     connectionForm->show();
 }
 
@@ -414,7 +432,6 @@ void API::slotConnection()
 
 bool API::createConnection()
 {
- //   qDebug()<<"create connection slot\n";
     global_db.setDatabaseName(connectionForm->nameDB->text());
     global_db.setUserName(connectionForm->nameUser->text());
     global_db.setHostName(connectionForm->Host->text());
@@ -431,15 +448,9 @@ bool API::createConnection()
         statusBar()->showMessage("Ошибка подключения", 3000);
      }
 
-    //view->setEditTriggers(QTableView::NoEditTriggers);
-//    QSqlQueryModel* model = new QSqlQueryModel();
     QSqlQuery* query = new QSqlQuery(global_db);
     query->exec("SELECT * FROM materialTypes;");
-//    QString str ="SELECT * FROM materialTypes;";
-//    model->setQuery(str, global_db);
     QStringList lst;
-//    lst << "Name" << "Description";
-//    Lib->setHeaderLabels(lst);
     Lib->clear();
     while(query->next())
     {
@@ -465,33 +476,16 @@ bool API::createConnection()
     TreeModel *Tree_Model = new TreeModel(headers, global_db);
     Tree->setModel(Tree_Model);
     Tree->setColumnWidth(0, 250);
-
+    qDebug() << Tree_Model->getRootItem()->data(0);
+    Tree->header()->hide();
     return true;
 }
 
 void API::slotSelectMat()
 {
-    //view->setEditTriggers(QTableView::NoEditTriggers);
     QString path = get_full_path(Tree->currentIndex());
     qDebug() << path;
     QSqlQueryModel* model = new QSqlQueryModel();
-    //QSqlTableModel* m = new QSqlTableModel();
-
-    //    for(int i=0; i<branches.count(); ++i)
-//    {
-//        addData(branches[i].split(QString(".")), rootItem);
-//    }
-
-//    QString str = "SELECT id, description FROM material_scheme RIGHT JOIN material ON material_scheme.id_material = material.id WHERE material_scheme.branch = '" + path + "';";
-//    model->setQuery(str, global_db);
-//    QString s = "select path from tree WHERE path <@ '" + path +"';";
-//    QStringList branches;
-//    while(query1.next())
-//    {
-//        qDebug() << query1.value(0).toString();
-//        branches << query1.value(0).toString();
-//    }
-    //model->setQuery("SELECT id, description FROM (select material_scheme RIGHT JOIN tree ON material_scheme.branch = tree.path  WHERE tree.path <@ '" + path +"') RIGHT JOIN material ON material_scheme.id_material = material.id;", global_db);
     model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN material ON material_branch.id_material = material.id WHERE material_branch.branch  <@ '" + path + "';");
     qDebug() << model->lastError();
     Mat->setModel(model);
