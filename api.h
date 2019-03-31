@@ -95,6 +95,8 @@ public slots:
     void slot_add_classification();
     void slot_add_branch();
     void slot_add_material();
+    void slot_remove_classification();
+    void slot_remove_branch();
 
     void slotFormConnection();
     void slotConnection();

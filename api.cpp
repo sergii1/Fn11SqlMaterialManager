@@ -240,20 +240,36 @@ API::API(QWidget *parent) :
 void API::slot_my_context_menu(const QPoint& pos){
     QModelIndex index = Tree->indexAt(pos);
     if(index.isValid()){
-        QString pass = get_full_path(index);
-        qDebug()<<"menu on  "<<pass;
+        QString path = get_full_path(index);
+        qDebug()<<"menu on  "<<path;
         QMenu* context_menu = new QMenu;
-        if(pass == "Schemes"){
+        int len = path.split('.').length();
+        qDebug()<<"len="<<len;
+
+        if(len == 1){
             QAction* pAct_add_branch = new QAction("Добавить классификацию");
             context_menu->addAction(pAct_add_branch);
             connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_add_classification()));
             context_menu->popup(Tree->mapToGlobal(pos));
         }
-        else{
+
+        if(len == 2){
+            QAction* pAct_remove_classification = new QAction("Удалить классификацию");
+            QAction* pAct_add_branch = new QAction("Добавить ветку");
+            context_menu->addAction(pAct_add_branch);
+            context_menu->addAction(pAct_remove_classification);
+            connect(pAct_remove_classification,SIGNAL(triggered()),this, SLOT(slot_remove_classification()));
+            connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_add_branch()));
+            context_menu->popup(Tree->mapToGlobal(pos));
+        }
+
+        if(len>2){
+            QAction* pAct_remove_branch = new QAction("Удалить ветку");
             QAction* pAct_add_branch = new QAction("Добавить ветку");
             QAction* pAct_add_material = new QAction("Добавить материал");
             context_menu->addAction(pAct_add_branch);
             context_menu->addAction(pAct_add_material);
+            connect(pAct_remove_branch,SIGNAL(triggered()),this, SLOT(slot_remove_branch()));
             connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_add_branch()));
             connect(pAct_add_material,SIGNAL(triggered()),this,SLOT(slot_add_material()));
             context_menu->popup(Tree->mapToGlobal(pos));
@@ -262,6 +278,18 @@ void API::slot_my_context_menu(const QPoint& pos){
     }
 }
 
+
+void API::slot_remove_classification(){
+    if(!Tree->currentIndex().isValid())
+        return;
+    qDebug()<<"remove classifications "<<get_full_path(Tree->currentIndex());
+}
+
+void API::slot_remove_branch(){
+    if(!Tree->currentIndex().isValid())
+        return;
+    qDebug()<<"remove branch "<<get_full_path(Tree->currentIndex());
+}
 void API::slot_add_classification(){
     if(!Tree->currentIndex().isValid())
         return;
@@ -333,8 +361,6 @@ void API::slot_add_material(){
 }
 
 QString API::get_full_path(const QModelIndex& index){
-      qDebug()<<index.row();
-      qDebug()<<index.column();
       QStringList res;
       QStringList lst = index.data().toStringList();
       //res += lst;
@@ -346,7 +372,7 @@ QString API::get_full_path(const QModelIndex& index){
       QModelIndex p_id = index;
       while(p_id.parent().isValid()){
           p_id = p_id.parent();
-          qDebug()<<"parent:";
+         // qDebug()<<"parent:";
           lst = p_id.data().toStringList();
           for(auto a:lst){
                  res += a;
@@ -354,10 +380,10 @@ QString API::get_full_path(const QModelIndex& index){
           }
       }
 
-      qDebug()<<"res";
+      //qDebug()<<"res";
       QString path;
       for(int i = res.length()-1; i!=0; i--){
-            qDebug()<<res[i];
+            //qDebug()<<res[i];
             path += res[i] + ".";
       }
 
