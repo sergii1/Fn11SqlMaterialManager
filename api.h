@@ -88,6 +88,7 @@ private:
 
     void setColumnWidth();
     QString get_full_path(const QModelIndex& index);
+    QString getScheme(const QString& path);
 public slots:
 
     void slot_my_context_menu(const QPoint&);

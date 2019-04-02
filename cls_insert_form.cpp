@@ -239,7 +239,7 @@ void cls_insert_form::insert_data(){
 
     //table == materials
     if(tbl_list->selectedItems()[0]->text()=="Materials"){
-         str = "insert into materials(name, description) values('"+ (*input_fields)[0]->text() +"','"
+         str = "insert into materials(id, description) values('"+ (*input_fields)[0]->text() +"','"
                                                                          + (*input_fields)[1]->text()+"');";
         qDebug()<<'\n'<<str;
     }

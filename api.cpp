@@ -202,7 +202,7 @@ API::API(QWidget *parent) :
      localQuery->exec(str);
      qDebug() << str;
      qDebug() << localQuery->lastError();
-     str = "CREATE TABLE materials(name text primary key, description text);";
+     str = "CREATE TABLE materials(id primary key, description text);";
      localQuery->exec(str);
      qDebug() << str;
      qDebug() << localQuery->lastError().text();
@@ -218,16 +218,16 @@ API::API(QWidget *parent) :
      localQuery->exec(str);
      qDebug() << str;
      qDebug() << localQuery->lastError().text();
-     str = "CREATE TABLE materialsModels(materials_name text references materials(name) ON DELETE CASCADE, models_name text references models(name) ON DELETE CASCADE,  primary key(materials_name, models_name));";
+     str = "CREATE TABLE materialsModels(materials_name text references materials(id) ON DELETE CASCADE, models_name text references models(name) ON DELETE CASCADE,  primary key(materials_name, models_name));";
      localQuery->exec(str);
      qDebug() << str;
      qDebug() << localQuery->lastError().text();
-     str = "CREATE TABLE propertyValueScalar(materials_name text references materials(name) ON DELETE CASCADE, properties_name text, value float not null, primary key(materials_name, properties_name));";
+     str = "CREATE TABLE propertyValueScalar(materials_name text references materials(id) ON DELETE CASCADE, properties_name text, value float not null, primary key(materials_name, properties_name));";
      localQuery->exec(str);
      qDebug() << str;
      qDebug() << localQuery->lastError().text();
      QSqlQueryModel* model = new QSqlQueryModel();
-     str ="SELECT name, description  FROM materials;";
+     str ="SELECT id, description  FROM materials;";
      model->setQuery(str, local_db);
      l_Mat->setModel(model);
      l_tabMat->setWidget(l_Mat);
@@ -284,7 +284,7 @@ void API::slot_remove_classification(){
     QString path = get_full_path(Tree->currentIndex());
     qDebug()<<"remove classifications "<< path;
     QSqlQuery q(global_db);
-    q.exec("DELETE FROM tree WHERE path = '" + path + "';");
+    q.exec("DELETE FROM tree WHERE path <@ '" + path + "';");
     qDebug() << q.lastError();
     TreeModel* model = (TreeModel*)Tree->model();
     model->addData(path.split(QString(".")), model->getRootItem());
@@ -300,7 +300,7 @@ void API::slot_remove_branch(){
     QString path = get_full_path(Tree->currentIndex());
     qDebug()<<"remove branch "<< path;
     QSqlQuery q(global_db);
-    q.exec("DELETE FROM tree WHERE path = '" + path + "';");
+    q.exec("DELETE FROM tree WHERE path <@ '" + path + "';");
     qDebug() << q.lastError();
     TreeModel* model = (TreeModel*)Tree->model();
     model->addData(path.split(QString(".")), model->getRootItem());
@@ -329,6 +329,7 @@ void API::slot_add_classification(){
     QString str = inputDialog.textValue();
     qDebug()<<str;
     QSqlQuery q(global_db);
+    q.exec("INSERT INTO schemes(scheme) VALUES ('" + str + "');");
     q.exec("INSERT INTO tree(path) VALUES ('" + get_full_path(Tree->currentIndex()) + "." + str + "');");
     qDebug() << q.lastError();
     TreeModel* model = (TreeModel*)Tree->model();
@@ -386,7 +387,12 @@ void API::slot_add_material(){
         return;
     QString str = inputDialog.textValue();
     qDebug()<<str;
-
+    QString path = get_full_path(Tree->currentIndex());
+    QSqlQuery q(global_db);
+    q.exec("INSERT INTO materials(id) VALUES ('" + str + "');");
+    qDebug() << q.lastError();
+    q.exec("INSERT INTO material_branch(scheme, branch, id_material) VALUES ('" + getScheme(path) + "', '" + path + "', '" + str + "');");
+    qDebug() << q.lastError();
 }
 
 QString API::get_full_path(const QModelIndex& index){
@@ -412,6 +418,14 @@ QString API::get_full_path(const QModelIndex& index){
 
       path += res[0];
       return path;
+}
+
+QString API::getScheme(const QString& path){
+      QString scheme;
+      QStringList l = path.split(QString("."));
+      if(l.count() > 1)
+        scheme = l[1];
+      return scheme;
 }
 
 void API::slotFormConnection()
@@ -487,7 +501,7 @@ void API::slotSelectMat()
     QString path = get_full_path(Tree->currentIndex());
     qDebug() << path;
     QSqlQueryModel* model = new QSqlQueryModel();
-    model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN material ON material_branch.id_material = material.id WHERE material_branch.branch  <@ '" + path + "';");
+    model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN materials ON material_branch.id_material = materials.id WHERE material_branch.branch  <@ '" + path + "';");
     qDebug() << model->lastError();
     Mat->setModel(model);
     Model->setModel(nullptr);
@@ -553,13 +567,14 @@ void API::slotImport()
     QString nameMaterial = Mat->model()->data(Mat->model()->index(Mat->currentIndex().row(), 0)).toString();
     QString nameModel = Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
     QString str;
-
+    QSqlQuery q(local_db);
+    qDebug() << "TESTING" << q.lastError();
     qDebug() << nameMaterial;
-    globalQuery->exec("SELECT * FROM materials WHERE name ='"+ nameMaterial +"';");
+    globalQuery->exec("SELECT * FROM materials WHERE id ='"+ nameMaterial +"';");
 
     while(globalQuery->next())
     {
-        str = "INSERT INTO materials(name, description) VALUES ('" + globalQuery->value(0).toString() + "', '" + globalQuery->value(2).toString() + "');";
+        str = "INSERT INTO materials(id, description) VALUES ('" + globalQuery->value(0).toString() + "', '" + globalQuery->value(2).toString() + "');";
         localQuery->exec(str);
         qDebug() << str;
         qDebug() << localQuery->lastError();
@@ -611,7 +626,7 @@ void API::slotImport()
         qDebug() << localQuery->lastError();
     }
     QSqlQueryModel* model = new QSqlQueryModel();
-    str ="SELECT name, description  FROM materials;";
+    str ="SELECT id, description  FROM materials;";
     model->setQuery(str, local_db);
     l_Mat->setModel(model);
     flagImport = true;
@@ -647,7 +662,7 @@ void API::slotAddLib(const QString & newLib)
    if(global_db.open())
         globalQuery = new QSqlQuery(global_db);
    //newLib = InputLib->toPlainText();
-   QString str = "INSERT INTO materialTypes(name) VALUES ('" + newLib +"');";
+   QString str = "INSERT INTO material_branch(name) VALUES ('" + newLib +"');";
    globalQuery->exec(str);
    qDebug() << globalQuery->lastError();
    QSqlQueryModel* model = new QSqlQueryModel();
@@ -656,7 +671,7 @@ void API::slotAddLib(const QString & newLib)
    while(localQuery->next())
    {
        qDebug() << localQuery->value(0).toString();
-       str = "INSERT INTO materials(name, materialTypes_name, description ) VALUES ('" + localQuery->value(0).toString() + "', '" + newLib + "', '" + localQuery->value(2).toString() +"');";
+       str = "INSERT INTO materials(id, description ) VALUES ('" + localQuery->value(0).toString() + "', '"+ localQuery->value(2).toString() +"');";
        globalQuery->exec(str);
    }
    localQuery->exec("SELECT * FROM models;");
