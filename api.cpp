@@ -237,6 +237,7 @@ API::API(QWidget *parent) :
 void API::slot_my_context_menu(const QPoint& pos){
     QModelIndex index = Tree->indexAt(pos);
     if(index.isValid()){
+
         QString path = get_full_path(index);
         qDebug()<<"menu on  "<<path;
         QMenu* context_menu = new QMenu;
@@ -247,7 +248,6 @@ void API::slot_my_context_menu(const QPoint& pos){
             QAction* pAct_add_branch = new QAction("Добавить классификацию");
             context_menu->addAction(pAct_add_branch);
             connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_add_classification()));
-            context_menu->popup(Tree->mapToGlobal(pos));
         }
 
         if(len == 2){
@@ -257,22 +257,23 @@ void API::slot_my_context_menu(const QPoint& pos){
             context_menu->addAction(pAct_remove_classification);
             connect(pAct_remove_classification,SIGNAL(triggered()),this, SLOT(slot_remove_classification()));
             connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_add_branch()));
-            context_menu->popup(Tree->mapToGlobal(pos));
         }
 
         if(len>2){
             QAction* pAct_remove_branch = new QAction("Удалить ветку");
             QAction* pAct_add_branch = new QAction("Добавить ветку");
-            QAction* pAct_add_material = new QAction("Добавить материал");
             context_menu->addAction(pAct_remove_branch);
             context_menu->addAction(pAct_add_branch);
-            context_menu->addAction(pAct_add_material);
             connect(pAct_remove_branch,SIGNAL(triggered()),this, SLOT(slot_remove_branch()));
             connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_add_branch()));
-            connect(pAct_add_material,SIGNAL(triggered()),this,SLOT(slot_add_material()));
-            context_menu->popup(Tree->mapToGlobal(pos));
         }
 
+        if(!index.child(0,0).isValid() && len!=1){
+            QAction* pAct_add_material = new QAction("Добавить материал");
+            context_menu->addAction(pAct_add_material);
+            connect(pAct_add_material,SIGNAL(triggered()),this,SLOT(slot_add_material()));
+        }
+        context_menu->popup(Tree->mapToGlobal(pos));
     }
 }
 
@@ -919,6 +920,7 @@ API::~API()
 {
 
     insert_form->close();
+    qDebug()<<"destuctor";
     delete  insert_form;
     delete connectionForm;
     delete command_form;
