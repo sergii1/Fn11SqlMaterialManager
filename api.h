@@ -49,7 +49,7 @@ private:
     Ui::API *ui;
     QGridLayout* m_Layout;
     QSqlDatabase globalDB;
-    QSqlDatabase local_db;
+    QSqlDatabase localDB;
 
     QTreeView* Tree;
     QTreeWidget* Lib;
@@ -91,7 +91,7 @@ private:
     QString getScheme(const QString& path);
 public slots:
 
-    void slotMyContextMenu(const QPoint&);
+    void slot_TreeContextMenu(const QPoint&);
 
     void slot_AddClassification();
     void slot_AddBranch();
@@ -106,9 +106,9 @@ public slots:
     void slot_SelectModel();
     void slot_SelectProperties();
     void slot_Import();
-    void slotExport();
-    void slotLocalSelectModel();
-    void slotLocalSelectProperties();
+    void slot_Export();
+    void slot_LocalSelectModel();
+    void slot_LocalSelectProperties();
 
     void slot_AddLib(const QString &);
 
@@ -127,8 +127,8 @@ public slots:
 
     void slot_About();
 signals:
-    void connection_is_created();
-    void need_update_table_view();
+    void connectionIsCreated();
+    void needUpdateTableView();
 };
 
 #endif // API_H

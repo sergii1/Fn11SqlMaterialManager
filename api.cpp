@@ -18,7 +18,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     Tree = new QTreeView();
     Tree->setAlternatingRowColors(true);
     Tree->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slotMyContextMenu(const QPoint&)));
+    connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_TreeContextMenu(const QPoint&)));
 
     Tree->show();
     QStringList headers;
@@ -173,34 +173,34 @@ API::API(const QString& pathToDB, QWidget *parent) :
     pmnuFAQ->addAction(pactFAQ);
     menuBar()->addMenu(pmnuFAQ);
 
-    local_db = QSqlDatabase::addDatabase("QSQLITE", "Local");
+    localDB = QSqlDatabase::addDatabase("QSQLITE", "Local");
     globalDB = QSqlDatabase::addDatabase("QPSQL");
     insertForm = new cls_insert_form();
     insertForm->globalDB = &globalDB;
-    insertForm->localDB = &local_db;
+    insertForm->localDB = &localDB;
 
     Mat->verticalHeader()->setDefaultSectionSize(28);
     Model->verticalHeader()->setDefaultSectionSize(28);
     Properties->verticalHeader()->setDefaultSectionSize(28);
     localMat->verticalHeader()->setDefaultSectionSize(28);
     localModel->verticalHeader()->setDefaultSectionSize(28);
-    connect(this,SIGNAL(need_update_table_view()),this,SLOT(slot_UpdateTableView()));
+    connect(this,SIGNAL(needUpdateTableView()),this,SLOT(slot_UpdateTableView()));
     connect(pactImport, SIGNAL(triggered(bool)), this, SLOT(slot_Import()));
-    connect(pactExport, SIGNAL(triggered(bool)), this, SLOT(slotExport()));
+    connect(pactExport, SIGNAL(triggered(bool)), this, SLOT(slot_Export()));
     connect(pactAddData, SIGNAL(triggered(bool)), this, SLOT(slot_ShowInsertForm()));
     connect(pactDeleteMat, SIGNAL(triggered(bool)), this, SLOT(slot_DeleteMat()));
     connect(pactDeleteModel, SIGNAL(triggered(bool)), this, SLOT(slot_DeleteModel()));
     connect(pactSQLQuery, SIGNAL(triggered(bool)), this, SLOT(slot_SQLQuery()));
     connect(pactFAQ, SIGNAL(triggered(bool)), this, SLOT(slot_About()));
    // connect(this,SIGNAL(connection_is_created()),SLOT(createListOfGlobalTable()));
-    connect(insertForm,SIGNAL(need_update_table_view()),this,SLOT(slot_UpdateTableView()));
+    connect(insertForm,SIGNAL(needUpdateTableView()),this,SLOT(slot_UpdateTableView()));
 
     statusBar()->showMessage("Подключите БД", 10000);
-    local_db.setDatabaseName(pathToDB);
-     local_db.open();
+    localDB.setDatabaseName(pathToDB);
+     localDB.open();
 
      QSqlQuery* localQuery;
-     localQuery = new QSqlQuery(local_db);
+     localQuery = new QSqlQuery(localDB);
      QString str = "PRAGMA foreign_keys = on";
      localQuery->exec(str);
      qDebug() << str;
@@ -231,16 +231,16 @@ API::API(const QString& pathToDB, QWidget *parent) :
      qDebug() << localQuery->lastError().text();
      QSqlQueryModel* model = new QSqlQueryModel();
      str ="SELECT id, description  FROM materials;";
-     model->setQuery(str, local_db);
+     model->setQuery(str, localDB);
      localMat->setModel(model);
      localTabMat->setWidget(localMat);
-     connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slotLocalSelectModel()));
+     connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectModel()));
 
      connectionForm = new cls_connectionForm();
      createConnection();
 }
 
-void API::slotMyContextMenu(const QPoint& pos){
+void API::slot_TreeContextMenu(const QPoint& pos){
     QModelIndex index = Tree->indexAt(pos);
     if(index.isValid()){
 
@@ -445,7 +445,7 @@ void API::slot_Connection()
 {
     if(createConnection()){
         connectionForm->close();
-        emit connection_is_created();
+        emit connectionIsCreated();
     }
 
 }
@@ -486,7 +486,7 @@ bool API::createConnection()
     localTabModel->show();
     connect(Tree, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectMat()));
     this->insertForm->globalDB=&globalDB;
-    this->insertForm->localDB=&local_db;
+    this->insertForm->localDB=&localDB;
     setColumnWidth();
     pactSQLQuery->setEnabled(true);
     statusBar()->showMessage("Готово", 3000);
@@ -565,7 +565,7 @@ void API::slot_Import()
     if (globalDB.open())
         globalQuery = new QSqlQuery(globalDB);
     else return;
-    localQuery = new QSqlQuery(local_db);
+    localQuery = new QSqlQuery(localDB);
 //    globalQuery->exec("SELECT * FROM materialTypes;");
 //    while(globalQuery->next())
 //    {
@@ -576,7 +576,7 @@ void API::slot_Import()
     QString nameMaterial = Mat->model()->data(Mat->model()->index(Mat->currentIndex().row(), 0)).toString();
     QString nameModel = Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
     QString str;
-    QSqlQuery q(local_db);
+    QSqlQuery q(localDB);
     qDebug() << "TESTING" << q.lastError();
     qDebug() << nameMaterial;
     globalQuery->exec("SELECT * FROM materials WHERE id ='"+ nameMaterial +"';");
@@ -636,17 +636,17 @@ void API::slot_Import()
     }
     QSqlQueryModel* model = new QSqlQueryModel();
     str ="SELECT id, description  FROM materials;";
-    model->setQuery(str, local_db);
+    model->setQuery(str, localDB);
     localMat->setModel(model);
     flagImport = true;
     setColumnWidth();
     statusBar()->showMessage("Успешно", 3000);
 }
 
-void API::slotExport()
+void API::slot_Export()
 {
     QSqlQuery* globalQuery = new QSqlQuery(globalDB);
-    QSqlQuery* localQuery = new QSqlQuery(local_db);
+    QSqlQuery* localQuery = new QSqlQuery(localDB);
     localQuery->exec("SELECT * FROM materials;");
     QString str;
     while(localQuery->next())
@@ -718,7 +718,7 @@ void API::slot_AddLib(const QString & newLib)
    globalQuery->exec(str);
    qDebug() << globalQuery->lastError();
    QSqlQueryModel* model = new QSqlQueryModel();
-   QSqlQuery* localQuery = new QSqlQuery(local_db);
+   QSqlQuery* localQuery = new QSqlQuery(localDB);
 
    QSqlQuery* query = new QSqlQuery(globalDB);
    query->exec("SELECT * FROM materialTypes;");
@@ -736,30 +736,30 @@ void API::slot_AddLib(const QString & newLib)
     statusBar()->showMessage("Успешно", 3000);
 }
 
-void API::slotLocalSelectModel()
+void API::slot_LocalSelectModel()
 {
     QSqlQueryModel* model = new QSqlQueryModel();
     nameMaterial = localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
     QString str = "SELECT models_name, description "
                   "FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
-    model->setQuery(str, local_db);
+    model->setQuery(str, localDB);
     qDebug() << model->lastError();
     localModel->setModel(model);
     Properties->setModel(nullptr);
     localModel->setAlternatingRowColors(true);
     localTabModel->setWidget(localModel);
-    connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slotLocalSelectProperties()));
+    connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
 
     setColumnWidth();
 }
 
-void API::slotLocalSelectProperties()
+void API::slot_LocalSelectProperties()
 {
     QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
     QSqlQueryModel* model = new QSqlQueryModel();
     QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     //QString str = "SELECT properties_name, value FROM (SELECT materials_name, models_name , properties_name, value, models_name FROM propertyValueScalar JOIN modelComposition ON propertyValueScalar.properties_name = modelComposition.properties_name) join materialsModels on allProp.materials_name = materialsModels.materials_name and  allProp.models_name = materialsModels.models_name where materialsModels.models_name = 'IsoElst' and materialsModels.materials_name = 'carbon';";
-    model->setQuery(str, local_db);
+    model->setQuery(str, localDB);
     qDebug() << model->lastError();
     Properties->setModel(model);
     Properties->setAlternatingRowColors(true);
@@ -805,11 +805,11 @@ void API::slot_RunCommand(){
         query = globalDB.exec(this->commandForm->commandText->toPlainText());
     }
     else{
-        query = local_db.exec(this->commandForm->commandText->toPlainText());
+        query = localDB.exec(this->commandForm->commandText->toPlainText());
     }
     if(query.isActive()){
         this->commandForm->command_res->setText("The command is success");
-        emit need_update_table_view();
+        emit needUpdateTableView();
     }
     else
         this->commandForm->command_res->setText(query.lastError().text());
@@ -826,7 +826,7 @@ void API::slot_UpdateTableView(){
     //QSqlQueryModel a  = ().setQuery("SELECT * FROM materialTypes;",local_db)
 
     if(localMat->model())
-    dynamic_cast<QSqlQueryModel*>(localMat->model())->setQuery("SELECT id, description FROM materials;",local_db);
+    dynamic_cast<QSqlQueryModel*>(localMat->model())->setQuery("SELECT id, description FROM materials;",localDB);
 
 //    if(l_Model->model())
 //    dynamic_cast<QSqlQueryModel*>(l_Model->model())->setQuery("SELECT * FROM materialsModels;",local_db);
@@ -883,12 +883,12 @@ void API::slot_CloseInsertForm()
 void API::slot_DeleteMat()
 {
     QSqlQuery* localQuery;
-    localQuery = new QSqlQuery(local_db);
+    localQuery = new QSqlQuery(localDB);
     QString str;
     str= "DELETE FROM materials WHERE name = '" + nameMaterial + "';";
     localQuery->exec(str);
     qDebug() << localQuery->lastError();
-    dynamic_cast<QSqlQueryModel*>(localMat->model())->setQuery("SELECT name, description FROM materials;",local_db);
+    dynamic_cast<QSqlQueryModel*>(localMat->model())->setQuery("SELECT name, description FROM materials;",localDB);
     localModel->setModel(nullptr);
     Properties->setModel(nullptr);
 
@@ -898,13 +898,13 @@ void API::slot_DeleteMat()
 void API::slot_DeleteModel()
 {
     QSqlQuery* localQuery;
-    localQuery = new QSqlQuery(local_db);
+    localQuery = new QSqlQuery(localDB);
     QString str;
     QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
     str= "DELETE FROM materialsModels WHERE materials_name  = '" + nameMaterial + "' AND models_name = '" + nameModel + "';";
     localQuery->exec(str);
     qDebug() << localQuery->lastError();
-    dynamic_cast<QSqlQueryModel*>(localModel->model())->setQuery("SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';",local_db);
+    dynamic_cast<QSqlQueryModel*>(localModel->model())->setQuery("SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';",localDB);
     Properties->setModel(nullptr);
 
     setColumnWidth();
@@ -965,11 +965,11 @@ API::~API()
     delete localTabMat;
     delete localTabModel;
 
-    local_db.close();
+    localDB.close();
     globalDB.close();
     globalDB.removeDatabase("qt_sql_default_connection");
-    local_db.removeDatabase("qt_sql_default_connection");
-    local_db.~QSqlDatabase();
+    localDB.removeDatabase("qt_sql_default_connection");
+    localDB.~QSqlDatabase();
     globalDB.~QSqlDatabase();
 
 }
