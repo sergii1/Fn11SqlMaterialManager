@@ -92,6 +92,12 @@ private:
 public slots:
 
     void slot_TreeContextMenu(const QPoint&);
+    void slot_MatContextMenu(const QPoint&);
+    void slot_ModelContextMenu(const QPoint&);
+    void slot_PropertiesContextMenu(const QPoint&);
+
+    void slot_Local_MatContextMenu(const QPoint&);
+    void slot_Local_ModelContextMenu(const QPoint&);
 
     void slot_AddClassification();
     void slot_AddBranch();
@@ -120,7 +126,6 @@ public slots:
     void slot_ShowInsertForm();
     void slot_CloseInsertForm();
 
-    void slot_CreateListOfGlobalTable();
     void slot_TabAddToView(QListWidgetItem*);
     void slot_RunCommand();
     void slot_UpdateTableView();

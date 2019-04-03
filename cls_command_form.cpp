@@ -20,7 +20,7 @@ cls_command_form::cls_command_form(QWidget* ptr, QWidget *parent):QWidget(parent
     //layout->setColumnStretch(0,1);
     wgt -> setLayout(layout);
     dock_CommandWdgt->setWidget(wgt);
-    connect(submit,SIGNAL(clicked()),ptr,SLOT(run_command()));
+    connect(submit,SIGNAL(clicked()),ptr,SLOT(slot_RunCommand()));
 }
 
 cls_command_form::~cls_command_form(){

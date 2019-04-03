@@ -16,8 +16,10 @@ API::API(const QString& pathToDB, QWidget *parent) :
     commandForm = new cls_command_form(this, nullptr);
 
     Tree = new QTreeView();
+    Tree->setCornerWidget(new QLabel("corner"));
     Tree->setAlternatingRowColors(true);
     Tree->setContextMenuPolicy(Qt::CustomContextMenu);
+    Tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_TreeContextMenu(const QPoint&)));
 
     Tree->show();
@@ -37,39 +39,62 @@ API::API(const QString& pathToDB, QWidget *parent) :
 
     tabLib = new QDockWidget;
     tabLib->setMaximumWidth(320);
-    tabLib->setWindowTitle("Классификация материалов");
-    tabLib->setAllowedAreas(Qt::LeftDockWidgetArea);
-    tabLib->setFeatures(QDockWidget::DockWidgetMovable);
+    QFont*font1 = new QFont();
+    font1->setPointSize(9);
+    //tabLib->setWindowTitle("Классификация материалов")
+    QLabel* lbl_tabLib = new QLabel("Классифиикация материалов");
+    tabLib->setTitleBarWidget(lbl_tabLib);
+    lbl_tabLib->setFont(*font1);
+    ((QLabel*)tabLib->titleBarWidget())->setAlignment(Qt::AlignCenter);
+    tabLib->titleBarWidget()->setStyleSheet("background: #80daeb");
+    tabLib->setAllowedAreas(Qt::NoDockWidgetArea);
+    tabLib->setFeatures(QDockWidget::NoDockWidgetFeatures);
+
     tabLib->setWidget(Tree);
 
     tabMat = new QDockWidget;
-    tabMat->setWindowTitle("Материалы");
-    tabMat->setAllowedAreas(Qt::LeftDockWidgetArea);
-    tabMat->setFeatures(QDockWidget::DockWidgetMovable);
+    tabMat->setTitleBarWidget(new QLabel("Материалы"));
+    ((QLabel*)tabMat->titleBarWidget())->setAlignment(Qt::AlignCenter);
+    tabMat->titleBarWidget()->setStyleSheet("background: #80daeb");
+    tabMat->titleBarWidget()->setFont(*font1);
+    tabMat->setAllowedAreas(Qt::NoDockWidgetArea);
+    tabMat->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     tabModel = new QDockWidget;
-    tabModel->setWindowTitle("Модели материала");
+    tabModel->setTitleBarWidget(new QLabel("Модели материала"));
+    ((QLabel*)tabModel->titleBarWidget())->setAlignment(Qt::AlignCenter);
+    tabModel->titleBarWidget()->setStyleSheet("background: #80daeb");
+    tabModel->titleBarWidget()->setFont(*font1);
     tabModel->setAllowedAreas(Qt::LeftDockWidgetArea);
-    tabModel->setFeatures(QDockWidget::DockWidgetMovable);
+    tabModel->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     tabProperties = new QDockWidget;
-    tabProperties->setWindowTitle("Свойства материала");
-    tabProperties->setAllowedAreas(Qt::LeftDockWidgetArea);
-    tabProperties->setFeatures(QDockWidget::DockWidgetMovable);
+    tabProperties->setTitleBarWidget(new QLabel("Свойства материала"));
+    ((QLabel*)tabProperties->titleBarWidget())->setAlignment(Qt::AlignCenter);
+    tabProperties->titleBarWidget()->setStyleSheet("background: #FFFFFF");
+    tabProperties->titleBarWidget()->setFont(*font1);
+    tabProperties->setAllowedAreas(Qt::NoDockWidgetArea);
+    tabProperties->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
 
     localMat = new QTableView();
     localModel = new QTableView();
 
     localTabMat = new QDockWidget;
-    localTabMat->setWindowTitle("Материалы");
-    localTabMat->setAllowedAreas(Qt::RightDockWidgetArea);
-    localTabMat->setFeatures(QDockWidget::DockWidgetMovable);
+    localTabMat->setTitleBarWidget(new QLabel("Материалы"));
+    ((QLabel*)localTabMat->titleBarWidget())->setAlignment(Qt::AlignCenter);
+    localTabMat->titleBarWidget()->setStyleSheet("background: #3eb489");
+    localTabMat->titleBarWidget()->setFont(*font1);
+    localTabMat->setAllowedAreas(Qt::NoDockWidgetArea);
+    localTabMat->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     localTabModel = new QDockWidget;
-    localTabModel->setWindowTitle("Модели материала");
-    localTabModel->setAllowedAreas(Qt::RightDockWidgetArea);
-    localTabModel->setFeatures(QDockWidget::DockWidgetMovable);
+    localTabModel->setTitleBarWidget(new QLabel("Модели материала"));
+    ((QLabel*)localTabModel->titleBarWidget())->setAlignment(Qt::AlignCenter);
+    localTabModel->titleBarWidget()->setStyleSheet("background: #3eb489");
+    localTabModel->titleBarWidget()->setFont(*font1);
+    localTabModel->setAllowedAreas(Qt::NoDockWidgetArea);
+    localTabModel->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     QWidget* body = new QWidget;
     body->setLayout(m_Layout);
@@ -83,6 +108,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     lbl_glb->setFont(font);
     glb_layout->addWidget(lbl_glb,0,1,Qt::AlignHCenter);
     glb_layout->setContentsMargins(0,0,0,0);
+    tabLib->setStyleSheet("border: blue");
     glb_layout->addWidget(tabLib,1,0);
     glb_layout->addWidget(tabMat,1,1);
     glb_layout->addWidget(tabModel,1,2);
@@ -243,7 +269,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
 void API::slot_TreeContextMenu(const QPoint& pos){
     QModelIndex index = Tree->indexAt(pos);
     if(index.isValid()){
-
         QString path = getFullPath(index);
         qDebug()<<"menu on  "<<path;
         QMenu* context_menu = new QMenu;
@@ -254,7 +279,7 @@ void API::slot_TreeContextMenu(const QPoint& pos){
             QAction* pAct_add_branch = new QAction("Добавить классификацию");
             context_menu->addAction(pAct_add_branch);
             connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddClassification()));
-        }
+         }
 
         if(len == 2){
             QAction* pAct_remove_classification = new QAction("Удалить классификацию");
@@ -283,6 +308,15 @@ void API::slot_TreeContextMenu(const QPoint& pos){
     }
 }
 
+void API::slot_MatContextMenu(const QPoint&){}
+
+void API::slot_ModelContextMenu(const QPoint&){}
+
+void API::slot_PropertiesContextMenu(const QPoint&){}
+
+void API::slot_Local_MatContextMenu(const QPoint&){}
+
+void API::slot_Local_ModelContextMenu(const QPoint&){}
 
 void API::slot_RemoveClassification(){
     if(!Tree->currentIndex().isValid())
@@ -304,7 +338,7 @@ void API::slot_RemoveBranch(){
     if(!Tree->currentIndex().isValid())
         return;
     QString path = getFullPath(Tree->currentIndex());
-    qDebug()<<"remove branch "<< path;
+    //qDebug()<<"remove branch "<< path;
     QSqlQuery q(globalDB);
     q.exec("DELETE FROM tree WHERE path <@ '" + path + "';");
     qDebug() << q.lastError();
@@ -319,7 +353,8 @@ void API::slot_RemoveBranch(){
 void API::slot_AddClassification(){
     if(!Tree->currentIndex().isValid())
         return;
-    qDebug()<<"classification "<<getFullPath(Tree->currentIndex());
+    QString path = getFullPath(Tree->currentIndex());
+   // qDebug()<<"classification "<<path;
     QInputDialog inputDialog;
     inputDialog.resize(400,140);
     inputDialog.setWindowTitle("Добавление классфикации");
@@ -336,7 +371,7 @@ void API::slot_AddClassification(){
     qDebug()<<str;
     QSqlQuery q(globalDB);
     q.exec("INSERT INTO schemes(scheme) VALUES ('" + str + "');");
-    q.exec("INSERT INTO tree(path) VALUES ('" + getFullPath(Tree->currentIndex()) + "." + str + "');");
+    q.exec("INSERT INTO tree(path) VALUES ('" + path + "." + str + "');");
     qDebug() << q.lastError();
     TreeModel* model = (TreeModel*)Tree->model();
     model->addData(str.split(QString(".")), model->getRootItem());
@@ -348,30 +383,31 @@ void API::slot_AddClassification(){
 void API::slot_AddBranch(){
     if(!Tree->currentIndex().isValid())
         return;
-     qDebug()<<"Branch  "<<getFullPath(Tree->currentIndex());
-     QInputDialog inputDialog;
-     inputDialog.resize(400,140);
-     inputDialog.setWindowTitle("Добавление ветки");
-     inputDialog.setLabelText("Введите название ветки");
-     inputDialog.setTextValue("New branch");
-     QFont font;
-     font.setPixelSize(12);
-     inputDialog.setFont(font);
-     inputDialog.setTextEchoMode(QLineEdit::Normal);
-     bool ok = !!inputDialog.exec();
-     if(!ok)
-         return;
-     QString str = inputDialog.textValue();
-     qDebug()<<str;
-     QSqlQuery q(globalDB);
-     q.exec("INSERT INTO tree(path) VALUES ('" + getFullPath(Tree->currentIndex()) + "." + str + "');");
-     qDebug() << q.lastError();
-     TreeModel* model = (TreeModel*)Tree->model();
-     model->addData(str.split(QString(".")), model->getRootItem());
-     QStringList headers;
-     headers << tr("Title") << tr("Description");
-     Tree->setModel(new TreeModel(headers, globalDB));
-     Tree->setColumnWidth(0, 250);
+    QString path = getFullPath(Tree->currentIndex());
+    //qDebug()<<"Branch  "<<getFullPath(Tree->currentIndex());
+    QInputDialog inputDialog;
+    inputDialog.resize(400,140);
+    inputDialog.setWindowTitle("Добавление ветки");
+    inputDialog.setLabelText("Введите название ветки");
+    inputDialog.setTextValue("New branch");
+    QFont font;
+    font.setPixelSize(12);
+    inputDialog.setFont(font);
+    inputDialog.setTextEchoMode(QLineEdit::Normal);
+    bool ok = !!inputDialog.exec();
+    if(!ok)
+        return;
+    QString str = inputDialog.textValue();
+    qDebug()<<str;
+    QSqlQuery q(globalDB);
+    q.exec("INSERT INTO tree(path) VALUES ('" + path + "." + str + "');");
+    qDebug() << q.lastError();
+    TreeModel* model = (TreeModel*)Tree->model();
+    model->addData(str.split(QString(".")), model->getRootItem());
+    QStringList headers;
+    headers << tr("Title") << tr("Description");
+    Tree->setModel(new TreeModel(headers, globalDB));
+    Tree->setColumnWidth(0, 250);
 }
 
 void API::slot_AddMaterial(){
@@ -551,8 +587,10 @@ void API::slot_SelectProperties()
     Properties->setModel(model);
     Properties->setAlternatingRowColors(true);
     tabProperties->setWidget(Properties);
+    tabProperties->titleBarWidget()->setStyleSheet("background: #80daeb");
     pactImport->setEnabled(true);
     setColumnWidth();
+
 }
 
 void API::slot_Import()
@@ -764,25 +802,10 @@ void API::slot_LocalSelectProperties()
     Properties->setModel(model);
     Properties->setAlternatingRowColors(true);
     tabProperties->setWidget(Properties);
-
+    tabProperties->titleBarWidget()->setStyleSheet("background: #3eb489");
     setColumnWidth();
 }
 
-void API::slot_CreateListOfGlobalTable(){
-
-  //  qDebug()<<"connection is created";
-    tables = new QListWidget();
-    QStringList lst = globalDB.tables();
-    foreach (QString str, lst) {
-        tables->addItem(str);
-    }
-    QDockWidget* wgt = new QDockWidget();
-    wgt->setWidget(tables);
-    wgt->setWindowTitle("List of tables");
-    //m_Layout->addWidget(wgt, 2, 7, 1, 1);
-    this->addDockWidget(Qt::BottomDockWidgetArea,wgt);
-    connect(tables,SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(slot_TabAddToView(QListWidgetItem*)));
-}
 
 void API::slot_TabAddToView(QListWidgetItem* p_item){
     QDockWidget* wgt = new QDockWidget();
