@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     cls_command_form.cpp \
     cls_insert_form.cpp \
     cls_export_form.cpp \
-    qrvztreemodel.cpp \
     sh_tree.cpp \
     treeitem.cpp
 
@@ -27,7 +26,6 @@ HEADERS  += api.h \
     cls_command_form.h \
     cls_insert_form.h \
     cls_export_form.h \
-    qrvztreemodel.h \
     sh_tree.h \
     treeitem.h
 

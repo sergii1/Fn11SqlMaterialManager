@@ -10,11 +10,11 @@ cls_export_form::cls_export_form(QStringList& lst, QWidget *parent) : QDialog(pa
    //VLayout.addWidget(&InputLib);
     libList.addItems(lst);
 
-    add_libMode.setText("добавить библиотеку");
-    not_add_libMode.setText("использовать существующую");
-    not_add_libMode.setChecked(true);
-    layout.addWidget(&add_libMode,0,0,1,1);
-    layout.addWidget(&not_add_libMode,0,1,1,1);
+    addLibMode.setText("добавить библиотеку");
+    notAddLibMode.setText("использовать существующую");
+    notAddLibMode.setChecked(true);
+    layout.addWidget(&addLibMode,0,0,1,1);
+    layout.addWidget(&notAddLibMode,0,1,1,1);
     stck.insertWidget(0,&libList);
     stck.insertWidget(1,&InputLib);
     layout.addWidget(&stck,1,0,1,2);
@@ -23,12 +23,12 @@ cls_export_form::cls_export_form(QStringList& lst, QWidget *parent) : QDialog(pa
     setLayout(&layout);
     resize(475,150);
 
-    connect(&add_libMode,SIGNAL(clicked()),this,SLOT(slot_choose_mode()));
-    connect(&not_add_libMode,SIGNAL(clicked()),this,SLOT(slot_choose_mode()));
-    connect(&pbntOK,SIGNAL(clicked()),this,SLOT(slot_pbntOK_clicked()));
+    connect(&addLibMode,SIGNAL(clicked()),this,SLOT(slot_ChooseMode()));
+    connect(&notAddLibMode,SIGNAL(clicked()),this,SLOT(slot_ChooseMode()));
+    connect(&pbntOK,SIGNAL(clicked()),this,SLOT(slot_pbntOkClicked()));
 }
 
-void cls_export_form::slot_choose_mode(){
+void cls_export_form::slot_ChooseMode(){
 
     if(dynamic_cast<QRadioButton*>(sender())->text()=="добавить библиотеку"){
         qDebug()<<"addLib";
@@ -40,13 +40,13 @@ void cls_export_form::slot_choose_mode(){
     }
 }
 
-void cls_export_form::slot_pbntOK_clicked(){
-    if(add_libMode.isChecked()&&!InputLib.text().isEmpty()){
+void cls_export_form::slot_pbntOkClicked(){
+    if(addLibMode.isChecked()&&!InputLib.text().isEmpty()){
         qDebug()<<InputLib.text();
-        emit need_AddLib(InputLib.text());
+        emit needAddLib(InputLib.text());
     }
     else
         qDebug()<<libList.currentText();
-        emit need_AddLib(libList.currentText());
+        emit needAddLib(libList.currentText());
 
 }

@@ -24,24 +24,24 @@ cls_connectionForm::cls_connectionForm(QWidget *parent):QDialog(parent){
     pbtnConnect = new QPushButton("Connect");
 
     //layout setup
-    m_VLayout = new QVBoxLayout();
-    m_VLayout->addWidget(new QLabel("DB name"));
-    m_VLayout->addWidget(nameDB);
+    vLayout = new QVBoxLayout();
+    vLayout->addWidget(new QLabel("DB name"));
+    vLayout->addWidget(nameDB);
 
-    m_VLayout->addWidget(new QLabel("User name"));
-    m_VLayout->addWidget(nameUser);
+    vLayout->addWidget(new QLabel("User name"));
+    vLayout->addWidget(nameUser);
 
-    m_VLayout->addWidget(new QLabel("Host"));
-    m_VLayout->addWidget(Host);
+    vLayout->addWidget(new QLabel("Host"));
+    vLayout->addWidget(Host);
 
-    m_VLayout->addWidget(new QLabel("Port"));
-    m_VLayout->addWidget(Port);
+    vLayout->addWidget(new QLabel("Port"));
+    vLayout->addWidget(Port);
 
-    m_VLayout->addWidget(new QLabel("Password"));
-    m_VLayout->addWidget(Password);
-    m_VLayout->addWidget(pbtnConnect);
+    vLayout->addWidget(new QLabel("Password"));
+    vLayout->addWidget(Password);
+    vLayout->addWidget(pbtnConnect);
 
-    setLayout(m_VLayout);
+    setLayout(vLayout);
     resize(400,400);
 }
 

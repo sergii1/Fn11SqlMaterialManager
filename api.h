@@ -42,13 +42,13 @@ public:
 private:
 
     cls_connectionForm* connectionForm;
-    cls_command_form* command_form;
-    cls_insert_form* insert_form;
-    cls_export_form* export_form;
+    cls_command_form* commandForm;
+    cls_insert_form* insertForm;
+    cls_export_form* exportForm;
 
     Ui::API *ui;
     QGridLayout* m_Layout;
-    QSqlDatabase global_db;
+    QSqlDatabase globalDB;
     QSqlDatabase local_db;
 
     QTreeView* Tree;
@@ -63,12 +63,12 @@ private:
     QDockWidget* tabModel;
     QDockWidget* tabProperties;
 
-    QTableView* l_Mat;
-    QTableView* l_Model;
+    QTableView* localMat;
+    QTableView* localModel;
 
 
-    QDockWidget* l_tabMat;
-    QDockWidget* l_tabModel;
+    QDockWidget* localTabMat;
+    QDockWidget* localTabModel;
 
     QListWidget* tables;
 
@@ -87,45 +87,45 @@ private:
     bool flagSQLQuery;
 
     void setColumnWidth();
-    QString get_full_path(const QModelIndex& index);
+    QString getFullPath(const QModelIndex& index);
     QString getScheme(const QString& path);
 public slots:
 
-    void slot_my_context_menu(const QPoint&);
+    void slotMyContextMenu(const QPoint&);
 
-    void slot_add_classification();
-    void slot_add_branch();
-    void slot_add_material();
-    void slot_remove_classification();
-    void slot_remove_branch();
+    void slot_AddClassification();
+    void slot_AddBranch();
+    void slot_AddMaterial();
+    void slot_RemoveClassification();
+    void slot_RemoveBranch();
 
-    void slotFormConnection();
-    void slotConnection();
+    void slot_FormConnection();
+    void slot_Connection();
 
-    void slotSelectMat();
-    void slotSelectModel();
-    void slotSelectProperties();
-    void slotImport();
+    void slot_SelectMat();
+    void slot_SelectModel();
+    void slot_SelectProperties();
+    void slot_Import();
     void slotExport();
     void slotLocalSelectModel();
     void slotLocalSelectProperties();
 
-    void slotAddLib(const QString &);
+    void slot_AddLib(const QString &);
 
-    void slotDeleteMat();
-    void slotDeleteModel();
+    void slot_DeleteMat();
+    void slot_DeleteModel();
 
-    void slotSQLQuery();
+    void slot_SQLQuery();
 
-    void slotShowInsertForm();
-    void slotCloseInsertForm();
+    void slot_ShowInsertForm();
+    void slot_CloseInsertForm();
 
-    void createListOfGlobalTable();
-    void TabAddToView(QListWidgetItem*);
-    void run_command();
-    void update_table_view();
+    void slot_CreateListOfGlobalTable();
+    void slot_TabAddToView(QListWidgetItem*);
+    void slot_RunCommand();
+    void slot_UpdateTableView();
 
-    void slotAbout();
+    void slot_About();
 signals:
     void connection_is_created();
     void need_update_table_view();

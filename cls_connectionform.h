@@ -15,7 +15,7 @@ public:
     QLineEdit* Password;
     QPushButton* pbtnConnect;
 private:
-    QDockWidget* dck_formConnection;
-    QVBoxLayout* m_VLayout;
+    QDockWidget* dock_FormConnection;
+    QVBoxLayout* vLayout;
 };
 #endif // CLS_CONNECTIONFORM_H

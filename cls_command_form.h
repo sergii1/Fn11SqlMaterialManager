@@ -16,13 +16,13 @@ class cls_command_form: public QWidget{
     cls_command_form(QWidget* ptr, QWidget *parent = nullptr);
     ~cls_command_form();
 
-    QTextEdit* command_text;
+    QTextEdit* commandText;
     QLabel* command_res;
-    QDockWidget* dck_command_wdgt;
-    QRadioButton* rb_globalDb;
+    QDockWidget* dock_CommandWdgt;
+    QRadioButton* rb_globalDB;
     private:
     QCommandLinkButton* submit;
-    QRadioButton* rb_localDb;
+    QRadioButton* rb_LocalDB;
 };
 
 #endif // CLS_COMMAND_FORM_H

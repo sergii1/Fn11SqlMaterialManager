@@ -13,15 +13,15 @@ private:
     QGridLayout layout;
     QLineEdit InputLib;
     QPushButton pbntOK;
-    QRadioButton add_libMode;
-    QRadioButton not_add_libMode;
+    QRadioButton addLibMode;
+    QRadioButton notAddLibMode;
     QComboBox libList;
     QStackedWidget stck;
 signals:
-    void need_AddLib(const QString&);
+    void needAddLib(const QString&);
 public slots:
-    void slot_choose_mode();
-    void slot_pbntOK_clicked();
+    void slot_ChooseMode();
+    void slot_pbntOkClicked();
 };
 
 #endif // CLS_EXPORT_FORM_H
