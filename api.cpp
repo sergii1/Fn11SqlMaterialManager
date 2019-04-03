@@ -2,8 +2,9 @@
 #include "ui_api.h"
 #include <algorithm>
 #include <QSize>
-
-API::API(QWidget *parent) :
+#include <QTimer>
+#include <QTime>
+API::API(const QString& pathToDB, QWidget *parent) :
     QMainWindow(parent)
    // ui(new Ui::API)
 {
@@ -35,7 +36,7 @@ API::API(QWidget *parent) :
     Properties = new QTableView();
 
     tabLib = new QDockWidget;
-    tabLib->setMaximumWidth(250);
+    tabLib->setMaximumWidth(320);
     tabLib->setWindowTitle("Классификация материалов");
     tabLib->setAllowedAreas(Qt::LeftDockWidgetArea);
     tabLib->setFeatures(QDockWidget::DockWidgetMovable);
@@ -195,7 +196,9 @@ API::API(QWidget *parent) :
     connect(insert_form,SIGNAL(need_update_table_view()),this,SLOT(update_table_view()));
 
     statusBar()->showMessage("Подключите БД", 10000);
+    local_db.setDatabaseName(pathToDB);
      local_db.open();
+
      QSqlQuery* localQuery;
      localQuery = new QSqlQuery(local_db);
      QString str = "PRAGMA foreign_keys = on";
@@ -232,6 +235,9 @@ API::API(QWidget *parent) :
      l_Mat->setModel(model);
      l_tabMat->setWidget(l_Mat);
      connect(l_Mat, SIGNAL(clicked(QModelIndex)), this, SLOT(slotLocalSelectModel()));
+
+     connectionForm = new cls_connectionForm();
+     createConnection();
 }
 
 void API::slot_my_context_menu(const QPoint& pos){
@@ -430,7 +436,6 @@ QString API::getScheme(const QString& path){
 
 void API::slotFormConnection()
 {
-    connectionForm = new cls_connectionForm();
     connectionForm->setWindowIcon(QIcon(":resources/addDB.png"));
     connect(connectionForm->pbtnConnect,SIGNAL(clicked()), this, SLOT(slotConnection()));
     connectionForm->show();
@@ -457,7 +462,7 @@ bool API::createConnection()
         QMessageBox* pmbx =
          new QMessageBox(QMessageBox::Warning,
          "Warning",
-         "Ошибка открытия БД, попробуйте снова");
+         "Ошибка открытия БД, попробуйте снова\n\n" + global_db.lastError().text());
         pmbx->show();
         statusBar()->showMessage("Ошибка открытия БД", 3000);
         statusBar()->showMessage("Ошибка подключения", 3000);
@@ -490,7 +495,7 @@ bool API::createConnection()
     headers << tr("Title") << tr("Description");
     TreeModel *Tree_Model = new TreeModel(headers, global_db);
     Tree->setModel(Tree_Model);
-    Tree->setColumnWidth(0, 250);
+    Tree->setColumnWidth(0, 500);
     qDebug() << Tree_Model->getRootItem()->data(0);
     Tree->header()->hide();
     return true;
@@ -520,9 +525,13 @@ void API::slotSelectModel()
     //view->setEditTriggers(QTableView::NoEditTriggers);
         QSqlQueryModel* model = new QSqlQueryModel();
         nameMaterial = Mat->model()->data(Mat->model()->index(Mat->currentIndex().row(), 0)).toString();
+        QTime time;
+        qDebug() << time.currentTime().toString();
         QString str = "SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
         global_db.open();
+
         model->setQuery(str, global_db);
+        qDebug() << time.currentTime().toString();
         Model->setModel(model);
         Properties->setModel(nullptr);
         Model->setAlternatingRowColors(true);
@@ -636,23 +645,66 @@ void API::slotImport()
 
 void API::slotExport()
 {
-
-    QStringList lst;
-    QSqlQuery query("select name from materialTypes",global_db);
-    if(query.isActive()){
-        while (query.next())
-                   lst<<query.value(0).toString();
-
-    export_form = new cls_export_form(lst);
-    connect(export_form, SIGNAL(need_AddLib(const QString&)), this, SLOT(slotAddLib(const QString &)));
-    export_form->show();
-    //local_db.close();
-    QSqlQuery* globalQuery;
-    if(global_db.open())
-        globalQuery = new QSqlQuery(global_db);
-    else return;
+    QSqlQuery* globalQuery = new QSqlQuery(global_db);
+    QSqlQuery* localQuery = new QSqlQuery(local_db);
+    localQuery->exec("SELECT * FROM materials;");
+    QString str;
+    while(localQuery->next())
+    {
+        qDebug() << localQuery->value(0).toString();
+        str = "INSERT INTO materials(id, description ) VALUES ('" + localQuery->value(0).toString() + "', '"+ localQuery->value(2).toString() +"');";
+        globalQuery->exec(str);
     }
-    setColumnWidth();
+    localQuery->exec("SELECT * FROM models;");
+    while(localQuery->next())
+    {
+        str = "INSERT INTO models(name, description) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
+        globalQuery->exec(str);
+    }
+
+    localQuery->exec("SELECT * FROM properties;");
+    while(localQuery->next())
+    {
+        str = "INSERT INTO properties(name) values ('" + localQuery->value(0).toString() + "');";
+        globalQuery->exec(str);
+        qDebug() << str;
+        qDebug() << globalQuery->lastError();
+    }
+
+    localQuery->exec("SELECT * FROM modelComposition;");
+    while(localQuery->next())
+    {
+        str = "INSERT INTO modelComposition(models_name, properties_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
+        globalQuery->exec(str);
+    }
+    localQuery->exec("SELECT * FROM materialsModels;");
+    while(localQuery->next())
+    {
+        qDebug() << localQuery->value(0).toString();
+        qDebug() << localQuery->value(1).toString();
+        str = "INSERT INTO materialsModels(materials_name, models_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
+        globalQuery->exec(str);
+        qDebug() << globalQuery->lastError();
+    }
+
+    localQuery->exec("SELECT * FROM propertyValueScalar;");
+    while(localQuery->next())
+    {
+        str = "INSERT INTO propertyValueScalar(materials_name, properties_name, value) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "', '" + localQuery->value(2).toString() + "');";
+        globalQuery->exec(str);
+        qDebug() << globalQuery->lastError();
+    }
+    QString path = get_full_path(Tree->currentIndex());
+    localQuery->exec("SELECT * FROM materials;");
+    while(localQuery->next())
+    {
+        qDebug() << localQuery->value(0).toString();
+        str = "INSERT INTO material_branch(scheme, branch, id_material) VALUES ('" + getScheme(path) + "', '" + path + "', '" + localQuery->value(0).toString() + "');";
+        globalQuery->exec(str);
+    }
+        globalQuery->exec(str);
+    qDebug() << str;
+    qDebug() << globalQuery->lastError();
 }
 
 void API::slotAddLib(const QString & newLib)
@@ -667,52 +719,7 @@ void API::slotAddLib(const QString & newLib)
    qDebug() << globalQuery->lastError();
    QSqlQueryModel* model = new QSqlQueryModel();
    QSqlQuery* localQuery = new QSqlQuery(local_db);
-   localQuery->exec("SELECT * FROM materials;");
-   while(localQuery->next())
-   {
-       qDebug() << localQuery->value(0).toString();
-       str = "INSERT INTO materials(id, description ) VALUES ('" + localQuery->value(0).toString() + "', '"+ localQuery->value(2).toString() +"');";
-       globalQuery->exec(str);
-   }
-   localQuery->exec("SELECT * FROM models;");
-   while(localQuery->next())
-   {
-       str = "INSERT INTO models(name, description) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
-       globalQuery->exec(str);
-   }
 
-   localQuery->exec("SELECT * FROM properties;");
-   while(localQuery->next())
-   {
-       str = "INSERT INTO properties(name) values ('" + localQuery->value(0).toString() + "');";
-       globalQuery->exec(str);
-       qDebug() << str;
-       qDebug() << globalQuery->lastError();
-   }
-
-   localQuery->exec("SELECT * FROM modelComposition;");
-   while(localQuery->next())
-   {
-       str = "INSERT INTO modelComposition(models_name, properties_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
-       globalQuery->exec(str);
-   }
-   localQuery->exec("SELECT * FROM materialsModels;");
-   while(localQuery->next())
-   {
-       qDebug() << localQuery->value(0).toString();
-       qDebug() << localQuery->value(1).toString();
-       str = "INSERT INTO materialsModels(materials_name, models_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
-       globalQuery->exec(str);
-       qDebug() << globalQuery->lastError();
-   }
-
-   localQuery->exec("SELECT * FROM propertyValueScalar;");
-   while(localQuery->next())
-   {
-       str = "INSERT INTO propertyValueScalar(materials_name, properties_name, value) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "', '" + localQuery->value(2).toString() + "');";
-       globalQuery->exec(str);
-       qDebug() << globalQuery->lastError();
-   }
    QSqlQuery* query = new QSqlQuery(global_db);
    query->exec("SELECT * FROM materialTypes;");
    Lib->clear();
@@ -819,7 +826,7 @@ void API::update_table_view(){
     //QSqlQueryModel a  = ().setQuery("SELECT * FROM materialTypes;",local_db)
 
     if(l_Mat->model())
-    dynamic_cast<QSqlQueryModel*>(l_Mat->model())->setQuery("SELECT name, description FROM materials;",local_db);
+    dynamic_cast<QSqlQueryModel*>(l_Mat->model())->setQuery("SELECT id, description FROM materials;",local_db);
 
 //    if(l_Model->model())
 //    dynamic_cast<QSqlQueryModel*>(l_Model->model())->setQuery("SELECT * FROM materialsModels;",local_db);

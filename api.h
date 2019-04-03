@@ -33,7 +33,7 @@ class API : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit API(QWidget *parent = nullptr);
+    explicit API(const QString& pathToDB,QWidget *parent = nullptr);
     bool createConnection();
     QPushButton* createButton(const QString& str);
     ~API();
