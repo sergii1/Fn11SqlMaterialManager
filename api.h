@@ -17,7 +17,6 @@
 #include<QList>
 #include <QSqlDriver>
 #include <QStringListModel>
-#include "cls_command_form.h"
 #include "cls_connectionform.h"
 #include "cls_insert_form.h"
 #include "cls_export_form.h"
@@ -42,7 +41,6 @@ public:
 private:
 
     cls_connectionForm* connectionForm;
-    cls_command_form* commandForm;
     cls_insert_form* insertForm;
     cls_export_form* exportForm;
 
@@ -99,11 +97,19 @@ public slots:
     void slot_Local_MatContextMenu(const QPoint&);
     void slot_Local_ModelContextMenu(const QPoint&);
 
+    //cлоты к контекстному меню дерева
     void slot_AddClassification();
     void slot_AddBranch();
     void slot_AddMaterial();
     void slot_RemoveClassification();
     void slot_RemoveBranch();
+
+    //слоты к остальным представлениям
+    void slot_local_add_model();
+    void slot_local_add_mat();
+    void slot_add_properties();
+    void slot_add_model();
+    void slot_add_material();
 
     void slot_FormConnection();
     void slot_Connection();
@@ -121,13 +127,9 @@ public slots:
     void slot_DeleteMat();
     void slot_DeleteModel();
 
-    void slot_SQLQuery();
-
     void slot_ShowInsertForm();
     void slot_CloseInsertForm();
 
-    void slot_TabAddToView(QListWidgetItem*);
-    void slot_RunCommand();
     void slot_UpdateTableView();
 
     void slot_About();

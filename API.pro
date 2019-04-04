@@ -15,7 +15,6 @@ TEMPLATE = app
 SOURCES += main.cpp\
         api.cpp \
     cls_connectionform.cpp \
-    cls_command_form.cpp \
     cls_insert_form.cpp \
     cls_export_form.cpp \
     sh_tree.cpp \
@@ -23,7 +22,6 @@ SOURCES += main.cpp\
 
 HEADERS  += api.h \
     cls_connectionform.h \
-    cls_command_form.h \
     cls_insert_form.h \
     cls_export_form.h \
     sh_tree.h \
