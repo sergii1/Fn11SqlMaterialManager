@@ -19,6 +19,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_TreeContextMenu(const QPoint&)));
 
     Tree->show();
+
     QStringList headers;
     headers << tr("Title") << tr("Description");
 
