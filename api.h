@@ -75,6 +75,13 @@ private:
     QAction* pactSQLQuery;
     QAction* pactFAQ;
 
+    //QActioin которыые используются в дереве
+    QAction* pAct_tree_add_branch;
+    QAction* pAct_tree_remove_branch;
+    QAction* pAct_tree_add_classification;
+    QAction* pAct_tree_remove_classification;
+    QAction* pAct_tree_add_material;
+
     QString newLib;
     QTextEdit* InputLib;
 

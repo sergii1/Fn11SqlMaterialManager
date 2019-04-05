@@ -68,7 +68,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
     tabLib->setMaximumWidth(320);
     QFont*font1 = new QFont();
     font1->setPointSize(9);
-    //tabLib->setWindowTitle("Классификация материалов")
     tabLib->setTitleBarWidget(new QLabel("Классифиикация материалов"));
     dynamic_cast<QLabel*>(tabLib->titleBarWidget())->setFont(*font1);
     dynamic_cast<QLabel*>(tabLib->titleBarWidget())->setAlignment(Qt::AlignCenter);
@@ -149,12 +148,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
     prop->setMaximumWidth(300);
     m_Layout->addWidget(vSplit1,0,0,1,1);
     m_Layout->addWidget(prop,0,1,1,1);
-
-//    m_Layout->addWidget(tabMat,0,1,1,1);
-//    m_Layout->addWidget(tabModel,0,2,1,1);
-//    m_Layout->addWidget(tabProperties,0,3,2,1,Qt::AlignHCenter);
-//    m_Layout->addWidget(l_tabMat,1,1,1,1);
-//    m_Layout->addWidget(l_tabModel,1,2,1,1);
 
     QToolBar* ptb = new QToolBar("Панель инструментов");
     QMenu* pmnuConnect = new QMenu("&Подключение");
@@ -295,10 +288,23 @@ API::API(const QString& pathToDB, QWidget *parent) :
     localTabModel->setWidget(localModel);
     connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
 
+    pAct_tree_add_branch = new QAction("Добавить ветку");
+    pAct_tree_remove_branch = new QAction("Удалить ветку");
+    pAct_tree_add_classification = new QAction("Добавить классификацию");
+    pAct_tree_remove_classification = new QAction("Удалить классификацию");
+    pAct_tree_add_material = new QAction("Добавить материал");
+
+    connect(pAct_tree_add_classification,SIGNAL(triggered()),this,SLOT(slot_AddClassification()));
+    connect(pAct_tree_remove_classification,SIGNAL(triggered()),this, SLOT(slot_RemoveClassification()));
+    connect(pAct_tree_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddBranch()));
+    connect(pAct_tree_remove_branch,SIGNAL(triggered()),this, SLOT(slot_RemoveBranch()));
+    connect(pAct_tree_add_material,SIGNAL(triggered()),this,SLOT(slot_AddMaterial()));
+
 
     connectionForm = new cls_connectionForm();
     createConnection();
 }
+
 
 void API::slot_TreeContextMenu(const QPoint& pos){
     QModelIndex index = Tree->indexAt(pos);
@@ -306,36 +312,23 @@ void API::slot_TreeContextMenu(const QPoint& pos){
         QString path = getFullPath(index);
         QMenu* context_menu = new QMenu;
         int len = path.split('.').length();
-
         if(len == 1){
-            QAction* pAct_add_branch = new QAction("Добавить классификацию");
-            context_menu->addAction(pAct_add_branch);
-            connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddClassification()));
+            context_menu->addAction(pAct_tree_add_classification);
          }
 
         if(len == 2){
-
-            QAction* pAct_remove_classification = new QAction("Удалить классификацию");
-            QAction* pAct_add_branch = new QAction("Добавить ветку");
-            context_menu->addAction(pAct_add_branch);
-            context_menu->addAction(pAct_remove_classification);
-            connect(pAct_remove_classification,SIGNAL(triggered()),this, SLOT(slot_RemoveClassification()));
-            connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddBranch()));
+            context_menu->addAction(pAct_tree_add_branch);
+            context_menu->addAction(pAct_tree_remove_classification);
         }
 
         if(len>2){
-            QAction* pAct_remove_branch = new QAction("Удалить ветку");
-            QAction* pAct_add_branch = new QAction("Добавить ветку");
-            context_menu->addAction(pAct_remove_branch);
-            context_menu->addAction(pAct_add_branch);
-            connect(pAct_remove_branch,SIGNAL(triggered()),this, SLOT(slot_RemoveBranch()));
-            connect(pAct_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddBranch()));
+            context_menu->addAction(pAct_tree_add_branch);
+            context_menu->addAction(pAct_tree_remove_branch);
+
         }
 
         if(!index.child(0,0).isValid() && len!=1){
-            QAction* pAct_add_material = new QAction("Добавить материал");
-            context_menu->addAction(pAct_add_material);
-            connect(pAct_add_material,SIGNAL(triggered()),this,SLOT(slot_AddMaterial()));
+            context_menu->addAction(pAct_tree_add_material);
         }
         context_menu->popup(Tree->mapToGlobal(pos));
     }
@@ -413,19 +406,15 @@ void API::slot_local_add_model(){}
 void API::slot_local_add_mat(){
     Dialog inputDialog;
     inputDialog.resize(400,140);
-    qDebug()<<"exec";
     inputDialog.exec();
-    qDebug()<<"exec end";
     if(!Dialog::needInsert){
-        qDebug()<<"dont need insert";
         return;
     }
 
-    //qDebug()<<"neeed insert";
     QString material = Dialog::getName();
     QString description = Dialog::getDescription();
     QString str = "insert into materials(id, description) values('"+ material +"','"
-                                                                    + description+"');";
+                                                                   + description+"');";
     QSqlQuery q(localDB);
     if(!q.exec(str)){
         qDebug() <<q.lastQuery();
@@ -440,9 +429,7 @@ void API::slot_add_properties(){}
 
 void API::slot_add_model(){}
 
-void API::slot_add_material(){
-
-}
+void API::slot_add_material(){}
 
 void API::slot_RemoveClassification(){
     if(!Tree->currentIndex().isValid())
@@ -681,10 +668,8 @@ bool API::createConnection()
 void API::slot_SelectMat()
 {
     QString path = getFullPath(Tree->currentIndex());
-   // qDebug() << path;
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(materials->model());
     model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN materials ON material_branch.id_material = materials.id WHERE material_branch.branch  <@ '" + path + "';");
-    //qDebug() << model->lastError();
     dynamic_cast<QSqlQueryModel*>(Model->model())->setQuery("select from nothing");
     dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
     setColumnWidth();
@@ -693,18 +678,17 @@ void API::slot_SelectMat()
 
 void API::slot_SelectModel()
 {
-    //view->setEditTriggers(QTableView::NoEditTriggers);
-        QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Model->model());
-        nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
-        QTime time;
-        qDebug() << time.currentTime().toString();
-        QString str = "SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
-        globalDB.open();
-        model->setQuery(str, globalDB);
-        qDebug() << time.currentTime().toString();
-        dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothign");
-        setColumnWidth();
-        pactImport->setEnabled(false);
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Model->model());
+    nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
+    QTime time;
+    qDebug() << time.currentTime().toString();
+    QString str = "SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
+    globalDB.open();
+    model->setQuery(str, globalDB);
+    qDebug() << time.currentTime().toString();
+    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothign");
+    setColumnWidth();
+    pactImport->setEnabled(false);
 }
 
 void API::slot_SelectProperties()
@@ -712,7 +696,6 @@ void API::slot_SelectProperties()
     QString nameModel =Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
     QString str = "select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
-    //QString str = "SELECT properties_name, value FROM (SELECT materials_name, models_name , properties_name, value, models_name FROM propertyValueScalar JOIN modelComposition ON propertyValueScalar.properties_name = modelComposition.properties_name) join materialsModels on allProp.materials_name = materialsModels.materials_name and  allProp.models_name = materialsModels.models_name where materialsModels.models_name = 'IsoElst' and materialsModels.materials_name = 'carbon';";
     model->setQuery(str, globalDB);
     tabProperties->titleBarWidget()->setStyleSheet("background: #80daeb");
     pactImport->setEnabled(true);
@@ -723,26 +706,16 @@ void API::slot_SelectProperties()
 void API::slot_Import()
 {
     globalDB.close();
-       QSqlQuery* localQuery;
-//    QString str = "CREATE TABLE materialTypes(name text primary key, description text);";
-//    localQuery->exec(str);
+    QSqlQuery* localQuery;
     QSqlQuery* globalQuery;
     if (globalDB.open())
         globalQuery = new QSqlQuery(globalDB);
     else return;
     localQuery = new QSqlQuery(localDB);
-//    globalQuery->exec("SELECT * FROM materialTypes;");
-//    while(globalQuery->next())
-//    {
-//        str = "INSERT INTO materialTypes(name, description) VALUES ('" + globalQuery->value(0).toString() + "', '" + globalQuery->value(1).toString() + "');";
-//        localQuery->exec(str);
-//    }
-//    QString nameTypeMaterial = Lib->model()->data(Lib->model()->index(Lib->currentIndex().row(), 0)).toString();
     QString nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
     QString nameModel = Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
     QString str;
     QSqlQuery q(localDB);
-   // qDebug() << "TESTING" << q.lastError();
     qDebug() << nameMaterial;
     globalQuery->exec("SELECT * FROM materials WHERE id ='"+ nameMaterial +"';");
 
@@ -894,7 +867,6 @@ void API::slot_Export()
     localQuery->exec("SELECT * FROM materials;");
     while(localQuery->next())
     {
-        //qDebug() << localQuery->value(0).toString();
         str = "INSERT INTO material_branch(scheme, branch, id_material) VALUES ('" + getScheme(path) + "', '" + path + "', '" + localQuery->value(0).toString() + "');";
         if(!globalQuery->exec(str)){
             qDebug()<<globalQuery->lastQuery();
@@ -949,7 +921,6 @@ void API::slot_LocalSelectModel()
     QString str = "SELECT models_name, description "
                   "FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
     model->setQuery(str, localDB);
-    //qDebug() << model->lastError();
     dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
     setColumnWidth();
 }
@@ -959,7 +930,6 @@ void API::slot_LocalSelectProperties()
     QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
     QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
-    //QString str = "SELECT properties_name, value FROM (SELECT materials_name, models_name , properties_name, value, models_name FROM propertyValueScalar JOIN modelComposition ON propertyValueScalar.properties_name = modelComposition.properties_name) join materialsModels on allProp.materials_name = materialsModels.materials_name and  allProp.models_name = materialsModels.models_name where materialsModels.models_name = 'IsoElst' and materialsModels.materials_name = 'carbon';";
     model->setQuery(str, localDB);
     qDebug() << model->lastError().text();
     Properties->setAlternatingRowColors(true);
@@ -967,8 +937,6 @@ void API::slot_LocalSelectProperties()
     tabProperties->titleBarWidget()->setStyleSheet("background: #3eb489");
     setColumnWidth();
 }
-
-
 
 void API::slot_UpdateTableView(){
     qDebug()<<"\nBegin update";
@@ -996,18 +964,14 @@ void API::slot_UpdateTableView(){
 
 void API::slot_ShowInsertForm()
 {
-    //qDebug() << "InsertFormShow";
-//     insert_form->setParent(this);
      insertForm->show();
      setEnabled(false);
-     //this->addDockWidget(Qt::TopDockWidgetArea,insert_form->dck_indert_form);
      connect(insertForm, SIGNAL(closed()), this, SLOT(slot_CloseInsertForm()));
 }
 
 void API::slot_CloseInsertForm()
 {
     insertForm->close();
-    //qDebug() << "closed";
     setEnabled(true);
 }
 
@@ -1040,7 +1004,6 @@ void API::slot_DeleteModel()
     }
     dynamic_cast<QSqlQueryModel*>(localModel->model())->setQuery("SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';",localDB);
     Properties->setModel(nullptr);
-
     setColumnWidth();
 }
 
