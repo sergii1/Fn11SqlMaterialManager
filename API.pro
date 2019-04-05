@@ -18,16 +18,22 @@ SOURCES += main.cpp\
     cls_insert_form.cpp \
     cls_export_form.cpp \
     sh_tree.cpp \
-    treeitem.cpp
+    treeitem.cpp \
+    dialog.cpp \
+    mytablewidget.cpp
 
 HEADERS  += api.h \
     cls_connectionform.h \
     cls_insert_form.h \
     cls_export_form.h \
     sh_tree.h \
-    treeitem.h
+    treeitem.h \
+    dialog.h \
+    mytablewidget.h
 
-FORMS    += api.ui
+FORMS    += \
+    dialog.ui \
+    mytablewidget.ui
 
 RESOURCES += \
     resources.qrc

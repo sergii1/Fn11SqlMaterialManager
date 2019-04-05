@@ -5,10 +5,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     qDebug() << argc;
-    int len;
     for(int i =0; i < argc; ++i){
         qDebug() << argv[i];
-        len = strlen(argv[i]);
     }
     QString path = argv[argc-1];
 

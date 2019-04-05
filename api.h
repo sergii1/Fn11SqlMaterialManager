@@ -21,10 +21,7 @@
 #include "cls_insert_form.h"
 #include "cls_export_form.h"
 #include "sh_tree.h"
-
-namespace Ui {
-class API;
-}
+#include "dialog.h"
 
 
 class API : public QMainWindow
@@ -39,12 +36,12 @@ public:
 
 
 private:
+    QString nameMaterial;
 
     cls_connectionForm* connectionForm;
     cls_insert_form* insertForm;
     cls_export_form* exportForm;
 
-    Ui::API *ui;
     QGridLayout* m_Layout;
     QSqlDatabase globalDB;
     QSqlDatabase localDB;
