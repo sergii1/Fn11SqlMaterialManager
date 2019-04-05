@@ -22,6 +22,7 @@
 #include "cls_export_form.h"
 #include "sh_tree.h"
 #include "dialog.h"
+#include "mytablewidget.h"
 
 
 class API : public QMainWindow
@@ -57,6 +58,13 @@ private:
     QDockWidget* tabMat;
     QDockWidget* tabModel;
     QDockWidget* tabProperties;
+
+    //пробую заменить tabMat на MaterialTable
+    MyTableWidget* materialTable;
+    MyTableWidget* modelTable;
+    MyTableWidget* propertiesTable;
+    MyTableWidget* localMaterialTable;
+    MyTableWidget* localModelTable;
 
     QTableView* localMat;
     QTableView* localModel;

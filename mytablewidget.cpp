@@ -1,7 +1,7 @@
 #include "mytablewidget.h"
 #include "ui_mytablewidget.h"
 
-MyTableWidget::MyTableWidget(QSqlQueryModel* p_model,const QString& p_tableName,QWidget *parent) :
+MyTableWidget::MyTableWidget(const QString& p_tableName,QSqlQueryModel* p_model,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MyTableWidget)
 {
@@ -31,6 +31,11 @@ void MyTableWidget::setText(const QString& p_text){
 
 QPushButton* MyTableWidget::getButton(){
     return ui->pushButton;
+}
+
+void MyTableWidget::setStyleSheet(const QString& p_qss){
+    ui->label->setStyleSheet(p_qss);
+    ui->pushButton->setStyleSheet(p_qss);
 }
 
 MyTableWidget::~MyTableWidget()

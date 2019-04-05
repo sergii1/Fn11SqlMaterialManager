@@ -30,39 +30,52 @@ API::API(const QString& pathToDB, QWidget *parent) :
     lst << "Name" << "Description";
     classification->setHeaderLabels(lst);
 
-    materials = new QTableView();
+
+    materialTable = new MyTableWidget("Материалы");
+    modelTable = new MyTableWidget("Модели");
+    propertiesTable = new MyTableWidget("Свойства");
+    localMaterialTable = new MyTableWidget("Материалы");
+    localModelTable = new MyTableWidget("Модели");
+
+    materialTable->setStyleSheet("background:blue");
+    modelTable->setStyleSheet("background:blue");
+    localMaterialTable->setStyleSheet("background:green");
+    localModelTable->setStyleSheet("background:green");
+
+
+    materials = materialTable->getView();
+    materials->setModel(new QSqlQueryModel());
     materials->setAlternatingRowColors(true);
     materials->setContextMenuPolicy(Qt::CustomContextMenu);
     materials->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    materials->setModel(new QSqlQueryModel());
     connect(materials,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_MatContextMenu(const QPoint&)));
 
-    Model = new QTableView();
+    Model = modelTable->getView();
     Model->setAlternatingRowColors(true);
+    Model->setModel(new QSqlQueryModel());
     Model->setContextMenuPolicy(Qt::CustomContextMenu);
     Model->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    Model->setModel(new QSqlQueryModel());
     connect(Model,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_ModelContextMenu(const QPoint&)));
 
-    Properties = new QTableView();
+    Properties = propertiesTable->getView();
+    Properties->setModel(new QSqlQueryModel());
     Properties->setAlternatingRowColors(true);
     Properties->setContextMenuPolicy(Qt::CustomContextMenu);
     Properties->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    Properties->setModel(new QSqlQueryModel());
     connect(Properties,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_PropertiesContextMenu(const QPoint&)));
 
-    localMat = new QTableView();
+    localMat = localMaterialTable->getView();
+    localMat->setModel(new QSqlQueryModel());
     localMat->setAlternatingRowColors(true);
     localMat->setContextMenuPolicy(Qt::CustomContextMenu);
     localMat->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    localMat->setModel(new QSqlQueryModel());
     connect(localMat,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_Local_MatContextMenu(const QPoint&)));
 
-    localModel = new QTableView();
+    localModel = localModelTable->getView();
+    localModel->setModel(new QSqlQueryModel());
     localModel->setAlternatingRowColors(true);
     localModel->setContextMenuPolicy(Qt::CustomContextMenu);
     localModel->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    localModel->setModel(new QSqlQueryModel());
     connect(localModel,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_Local_ModelContextMenu(const QPoint&)));
 
     tabLib = new QDockWidget;
@@ -75,36 +88,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
     tabLib->titleBarWidget()->setStyleSheet("QLabel {background: #80daeb}");
     tabLib->setWidget(Tree);
 
-    tabMat = new QDockWidget;
-    tabMat->setTitleBarWidget(new QLabel("Материалы"));
-    dynamic_cast<QLabel*>(tabMat->titleBarWidget())->setAlignment(Qt::AlignCenter);
-    tabMat->titleBarWidget()->setStyleSheet("background: #80daeb");
-    tabMat->titleBarWidget()->setFont(*font1);
-
-    tabModel = new QDockWidget;
-    tabModel->setTitleBarWidget(new QLabel("Модели материала"));
-    dynamic_cast<QLabel*>(tabModel->titleBarWidget())->setAlignment(Qt::AlignCenter);
-    tabModel->titleBarWidget()->setStyleSheet("background: #80daeb");
-    tabModel->titleBarWidget()->setFont(*font1);
-
-    tabProperties = new QDockWidget;
-    tabProperties->setTitleBarWidget(new QLabel("Свойства материала"));
-    dynamic_cast<QLabel*>(tabProperties->titleBarWidget())->setAlignment(Qt::AlignCenter);
-    tabProperties->titleBarWidget()->setStyleSheet("background: #FFFFFF");
-    tabProperties->titleBarWidget()->setFont(*font1);
-
-    localTabMat = new QDockWidget;
-    localTabMat->setTitleBarWidget(new QLabel("Материалы"));
-    dynamic_cast<QLabel*>(localTabMat->titleBarWidget())->setAlignment(Qt::AlignCenter);
-    localTabMat->titleBarWidget()->setStyleSheet("background: #3eb489");
-    localTabMat->titleBarWidget()->setFont(*font1);
-
-    localTabModel = new QDockWidget;
-    localTabModel->setTitleBarWidget(new QLabel("Модели материала"));
-    dynamic_cast<QLabel*>(localTabModel->titleBarWidget())->setAlignment(Qt::AlignCenter);
-    localTabModel->titleBarWidget()->setStyleSheet("background: #3eb489");
-    localTabModel->titleBarWidget()->setFont(*font1);
-
     QWidget* body = new QWidget;
     body->setLayout(m_Layout);
     setCentralWidget(body);
@@ -114,23 +97,25 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QLabel* lbl_glb = new QLabel("Глобальная БД");
     QFont font = lbl_glb->font();
     font.setPixelSize(18);
-    lbl_glb->setFont(font);
+    lbl_glb->setFont(font);    
     glb_layout->addWidget(lbl_glb,0,1,Qt::AlignHCenter);
     glb_layout->setContentsMargins(0,0,0,0);
     tabLib->setStyleSheet("border: blue");
     glb_layout->addWidget(tabLib,1,0);
-    glb_layout->addWidget(tabMat,1,1);
-    glb_layout->addWidget(tabModel,1,2);
-    glb_area->setLayout(glb_layout);
+    glb_layout->addWidget(materialTable,1,1);
+    glb_layout->addWidget(modelTable,1,2);
+    qDebug()<<"EEEEE";
 
+    glb_area->setLayout(glb_layout);
+    qDebug()<<"1";
     QWidget* local_area = new QWidget();
     QLabel* lbl_loc = new QLabel("Локальная БД");
     lbl_loc->setFont(font);
     QGridLayout* local_layout = new QGridLayout();
     local_layout->setContentsMargins(0,0,0,0);
     local_layout->addWidget(lbl_loc,0,0,1,3,Qt::AlignHCenter);
-    local_layout->addWidget(localTabMat,1,0,1,1);
-    local_layout->addWidget(localTabModel,1,2,1,1);
+    local_layout->addWidget(localMaterialTable,1,0,1,1);
+    local_layout->addWidget(localModelTable,1,2,1,1);
     local_area->setLayout(local_layout);
 
     QSplitter* vSplit1 = new QSplitter(Qt::Vertical);
@@ -143,7 +128,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QLabel* kostil = new QLabel("    ");
     kostil->setFont(font);
     lt->addWidget(kostil);
-    lt->addWidget(tabProperties);
+    lt->addWidget(propertiesTable);
     lt->setContentsMargins(0,0,0,0);
 
     prop->setMaximumWidth(300);
@@ -269,24 +254,17 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localMat->model());
     str ="SELECT id, description  FROM materials;";
     model->setQuery(str, localDB);
-    localTabMat->setWidget(localMat);
     connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectModel()));
 
 
 
-    materials->setAlternatingRowColors(true);
-    tabMat->setWidget(materials);
-    connect(materials, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
 
-    Model->setAlternatingRowColors(true);
-    tabModel->setWidget(Model);
-    connect(Model, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
+    connect(materialTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
 
-    Properties->setAlternatingRowColors(true);
-    tabProperties->setWidget(Properties);
+    modelTable->setModel(dynamic_cast<QSqlQueryModel*>(Model->model()));
+    connect(modelTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
 
-    localModel->setAlternatingRowColors(true);
-    localTabModel->setWidget(localModel);
+
     connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
 
     pAct_tree_add_branch = new QAction("Добавить ветку");
@@ -645,11 +623,11 @@ bool API::createConnection()
         QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
         ptwgItemDir->setText(1, query->value(1).toString());
     }
-    tabMat->show();
-    tabModel->show();
-    tabProperties->show();
-    localTabMat->show();
-    localTabModel->show();
+    //tabMat->show();
+    //tabModel->show();
+    //tabProperties->show();
+    //localTabMat->show();
+   // localTabModel->show();
     connect(Tree, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectMat()));
     this->insertForm->globalDB=&globalDB;
     this->insertForm->localDB=&localDB;
@@ -668,6 +646,7 @@ bool API::createConnection()
 
 void API::slot_SelectMat()
 {
+    qDebug()<<"slot select mat";
     QString path = getFullPath(Tree->currentIndex());
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(materials->model());
     model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN materials ON material_branch.id_material = materials.id WHERE material_branch.branch  <@ '" + path + "';");
@@ -679,6 +658,7 @@ void API::slot_SelectMat()
 
 void API::slot_SelectModel()
 {
+    qDebug()<<"select model";
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Model->model());
     nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
     QTime time;
@@ -698,7 +678,7 @@ void API::slot_SelectProperties()
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
     QString str = "select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     model->setQuery(str, globalDB);
-    tabProperties->titleBarWidget()->setStyleSheet("background: #80daeb");
+    propertiesTable->setStyleSheet("background: blue");
     pactImport->setEnabled(true);
     setColumnWidth();
 
@@ -933,9 +913,7 @@ void API::slot_LocalSelectProperties()
     QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     model->setQuery(str, localDB);
     qDebug() << model->lastError().text();
-    Properties->setAlternatingRowColors(true);
-    tabProperties->setWidget(Properties);
-    tabProperties->titleBarWidget()->setStyleSheet("background: #3eb489");
+    propertiesTable->setStyleSheet("background: green");
     setColumnWidth();
 }
 
@@ -1035,11 +1013,11 @@ API::~API()
     delete localMat;
     delete localModel;
     delete tabLib;
-    delete tabMat;
-    delete tabModel;
-    delete tabProperties;
-    delete localTabMat;
-    delete localTabModel;
+
+    //delete tabModel;
+    //delete tabProperties;
+    //delete localTabMat;
+    //delete localTabModel;
 
     localDB.close();
     globalDB.close();

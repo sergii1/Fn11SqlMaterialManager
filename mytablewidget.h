@@ -13,7 +13,7 @@ class MyTableWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit MyTableWidget(QSqlQueryModel* p_model,const QString& p_tableName,QWidget *parent = nullptr);
+    explicit MyTableWidget(const QString& p_tableName = "",QSqlQueryModel* p_model = nullptr, QWidget *parent = nullptr);
     ~MyTableWidget();
     QTableView* getView();
     QAbstractItemModel* getModel();
@@ -21,6 +21,7 @@ public:
     void setModel(QSqlQueryModel* p_model);
     void setText(const QString& p_text);
     QPushButton* getButton();
+    void setStyleSheet(const QString& p_qss);
 
 private:
     Ui::MyTableWidget *ui;
