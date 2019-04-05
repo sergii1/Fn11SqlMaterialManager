@@ -13,7 +13,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
 
 
     Tree = new QTreeView();
-    Tree->setCornerWidget(new QLabel("corner"));
     Tree->setAlternatingRowColors(true);
     Tree->setContextMenuPolicy(Qt::CustomContextMenu);
     Tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -23,41 +22,46 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QStringList headers;
     headers << tr("Title") << tr("Description");
 
-    Lib = new QTreeWidget();
-    Lib->setAlternatingRowColors(true);
-    Lib->setStyleSheet("border: 1px solid lightgray;");
+    classification = new QTreeWidget();
+    classification->setAlternatingRowColors(true);
+    classification->setStyleSheet("border: 1px solid lightgray;");
     QStringList lst;
     lst << "Name" << "Description";
-    Lib->setHeaderLabels(lst);
+    classification->setHeaderLabels(lst);
 
-    Mat = new QTableView();
-    Mat->setAlternatingRowColors(true);
-    Mat->setContextMenuPolicy(Qt::CustomContextMenu);
-    Mat->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    connect(Mat,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_MatContextMenu(const QPoint&)));
+    materials = new QTableView();
+    materials->setAlternatingRowColors(true);
+    materials->setContextMenuPolicy(Qt::CustomContextMenu);
+    materials->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    materials->setModel(new QSqlQueryModel());
+    connect(materials,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_MatContextMenu(const QPoint&)));
 
     Model = new QTableView();
     Model->setAlternatingRowColors(true);
     Model->setContextMenuPolicy(Qt::CustomContextMenu);
     Model->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    Model->setModel(new QSqlQueryModel());
     connect(Model,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_ModelContextMenu(const QPoint&)));
 
     Properties = new QTableView();
     Properties->setAlternatingRowColors(true);
     Properties->setContextMenuPolicy(Qt::CustomContextMenu);
     Properties->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    Properties->setModel(new QSqlQueryModel());
     connect(Properties,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_PropertiesContextMenu(const QPoint&)));
 
     localMat = new QTableView();
     localMat->setAlternatingRowColors(true);
     localMat->setContextMenuPolicy(Qt::CustomContextMenu);
     localMat->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    localMat->setModel(new QSqlQueryModel());
     connect(localMat,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_Local_MatContextMenu(const QPoint&)));
 
     localModel = new QTableView();
     localModel->setAlternatingRowColors(true);
     localModel->setContextMenuPolicy(Qt::CustomContextMenu);
     localModel->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    localModel->setModel(new QSqlQueryModel());
     connect(localModel,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_Local_ModelContextMenu(const QPoint&)));
 
     tabLib = new QDockWidget;
@@ -206,7 +210,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     insertForm->globalDB = &globalDB;
     insertForm->localDB = &localDB;
 
-    Mat->verticalHeader()->setDefaultSectionSize(28);
+    materials->verticalHeader()->setDefaultSectionSize(28);
     Model->verticalHeader()->setDefaultSectionSize(28);
     Properties->verticalHeader()->setDefaultSectionSize(28);
     localMat->verticalHeader()->setDefaultSectionSize(28);
@@ -268,12 +272,29 @@ API::API(const QString& pathToDB, QWidget *parent) :
         qDebug() << localQuery->lastError().text();
     }
 
-    QSqlQueryModel* model = new QSqlQueryModel();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localMat->model());
     str ="SELECT id, description  FROM materials;";
     model->setQuery(str, localDB);
-    localMat->setModel(model);
     localTabMat->setWidget(localMat);
     connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectModel()));
+
+
+
+    materials->setAlternatingRowColors(true);
+    tabMat->setWidget(materials);
+    connect(materials, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
+
+    Model->setAlternatingRowColors(true);
+    tabModel->setWidget(Model);
+    connect(Model, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
+
+    Properties->setAlternatingRowColors(true);
+    tabProperties->setWidget(Properties);
+
+    localModel->setAlternatingRowColors(true);
+    localTabModel->setWidget(localModel);
+    connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
+
 
     connectionForm = new cls_connectionForm();
     createConnection();
@@ -321,7 +342,7 @@ void API::slot_TreeContextMenu(const QPoint& pos){
 }
 
 void API::slot_MatContextMenu(const QPoint& pos){
-    QModelIndex index = Mat->currentIndex();
+    QModelIndex index = materials->currentIndex();
     QStringList lst =  index.data().toStringList();
     for(QString& str:lst){
         qDebug()<<str;
@@ -330,7 +351,7 @@ void API::slot_MatContextMenu(const QPoint& pos){
     QAction* pAct_AddMat = new QAction("Добавить материал");
     context_menu->addAction(pAct_AddMat);
     connect(pAct_AddMat,SIGNAL(triggered()),this, SLOT(slot_add_material()));
-    context_menu->popup(Mat->mapToGlobal(pos));
+    context_menu->popup(materials->mapToGlobal(pos));
 }
 
 void API::slot_ModelContextMenu(const QPoint& pos){
@@ -628,10 +649,10 @@ bool API::createConnection()
     QSqlQuery* query = new QSqlQuery(globalDB);
     query->exec("SELECT * FROM materialTypes;");
     QStringList lst;
-    Lib->clear();
+    classification->clear();
     while(query->next())
     {
-        QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(Lib);
+        QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(classification);
         ptwgItem->setText(0,query->value(0).toString());
         QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
         ptwgItemDir->setText(1, query->value(1).toString());
@@ -661,15 +682,11 @@ void API::slot_SelectMat()
 {
     QString path = getFullPath(Tree->currentIndex());
    // qDebug() << path;
-    QSqlQueryModel* model = new QSqlQueryModel();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(materials->model());
     model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN materials ON material_branch.id_material = materials.id WHERE material_branch.branch  <@ '" + path + "';");
     //qDebug() << model->lastError();
-    Mat->setModel(model);
-    Model->setModel(nullptr);
-    Properties->setModel(nullptr);
-    Mat->setAlternatingRowColors(true);
-    tabMat->setWidget(Mat);
-    connect(Mat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
+    dynamic_cast<QSqlQueryModel*>(Model->model())->setQuery("select from nothing");
+    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
     setColumnWidth();
     pactImport->setEnabled(false);
 }
@@ -677,20 +694,15 @@ void API::slot_SelectMat()
 void API::slot_SelectModel()
 {
     //view->setEditTriggers(QTableView::NoEditTriggers);
-        QSqlQueryModel* model = new QSqlQueryModel();
-        nameMaterial = Mat->model()->data(Mat->model()->index(Mat->currentIndex().row(), 0)).toString();
+        QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Model->model());
+        nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
         QTime time;
         qDebug() << time.currentTime().toString();
         QString str = "SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
         globalDB.open();
-
         model->setQuery(str, globalDB);
         qDebug() << time.currentTime().toString();
-        Model->setModel(model);
-        Properties->setModel(nullptr);
-        Model->setAlternatingRowColors(true);
-        tabModel->setWidget(Model);
-        connect(Model, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
+        dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothign");
         setColumnWidth();
         pactImport->setEnabled(false);
 }
@@ -698,13 +710,10 @@ void API::slot_SelectModel()
 void API::slot_SelectProperties()
 {
     QString nameModel =Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
-    QSqlQueryModel* model = new QSqlQueryModel();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
     QString str = "select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     //QString str = "SELECT properties_name, value FROM (SELECT materials_name, models_name , properties_name, value, models_name FROM propertyValueScalar JOIN modelComposition ON propertyValueScalar.properties_name = modelComposition.properties_name) join materialsModels on allProp.materials_name = materialsModels.materials_name and  allProp.models_name = materialsModels.models_name where materialsModels.models_name = 'IsoElst' and materialsModels.materials_name = 'carbon';";
     model->setQuery(str, globalDB);
-    Properties->setModel(model);
-    Properties->setAlternatingRowColors(true);
-    tabProperties->setWidget(Properties);
     tabProperties->titleBarWidget()->setStyleSheet("background: #80daeb");
     pactImport->setEnabled(true);
     setColumnWidth();
@@ -729,7 +738,7 @@ void API::slot_Import()
 //        localQuery->exec(str);
 //    }
 //    QString nameTypeMaterial = Lib->model()->data(Lib->model()->index(Lib->currentIndex().row(), 0)).toString();
-    QString nameMaterial = Mat->model()->data(Mat->model()->index(Mat->currentIndex().row(), 0)).toString();
+    QString nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
     QString nameModel = Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
     QString str;
     QSqlQuery q(localDB);
@@ -808,10 +817,9 @@ void API::slot_Import()
             qDebug() << localQuery->lastError().text();;
         }
     }
-    QSqlQueryModel* model = new QSqlQueryModel();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localMat->model());
     str ="SELECT id, description  FROM materials;";
     model->setQuery(str, localDB);
-    localMat->setModel(model);
     flagImport = true;
     setColumnWidth();
     statusBar()->showMessage("Успешно", 3000);
@@ -897,6 +905,8 @@ void API::slot_Export()
         qDebug()<<globalQuery->lastQuery();
         qDebug()<<globalQuery->lastError().text();
     }
+    delete globalQuery;
+    delete localQuery;
 }
 
 void API::slot_AddLib(const QString & newLib)
@@ -917,10 +927,10 @@ void API::slot_AddLib(const QString & newLib)
 
    QSqlQuery* query = new QSqlQuery(globalDB);
    query->exec("SELECT * FROM materialTypes;");
-   Lib->clear();
+   classification->clear();
    while(query->next())
    {
-       QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(Lib);
+       QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(classification);
        ptwgItem->setText(0,query->value(0).toString());
        QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
        ptwgItemDir->setText(1, query->value(1).toString());
@@ -929,34 +939,29 @@ void API::slot_AddLib(const QString & newLib)
 
     setColumnWidth();
     statusBar()->showMessage("Успешно", 3000);
+    delete globalQuery;
 }
 
 void API::slot_LocalSelectModel()
 {
-    QSqlQueryModel* model = new QSqlQueryModel();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localModel->model());
     nameMaterial = localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
     QString str = "SELECT models_name, description "
                   "FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
     model->setQuery(str, localDB);
     //qDebug() << model->lastError();
-    localModel->setModel(model);
-    Properties->setModel(nullptr);
-    localModel->setAlternatingRowColors(true);
-    localTabModel->setWidget(localModel);
-    connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
-
+    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
     setColumnWidth();
 }
 
 void API::slot_LocalSelectProperties()
 {
     QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
-    QSqlQueryModel* model = new QSqlQueryModel();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
     QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     //QString str = "SELECT properties_name, value FROM (SELECT materials_name, models_name , properties_name, value, models_name FROM propertyValueScalar JOIN modelComposition ON propertyValueScalar.properties_name = modelComposition.properties_name) join materialsModels on allProp.materials_name = materialsModels.materials_name and  allProp.models_name = materialsModels.models_name where materialsModels.models_name = 'IsoElst' and materialsModels.materials_name = 'carbon';";
     model->setQuery(str, localDB);
     qDebug() << model->lastError().text();
-    Properties->setModel(model);
     Properties->setAlternatingRowColors(true);
     tabProperties->setWidget(Properties);
     tabProperties->titleBarWidget()->setStyleSheet("background: #3eb489");
@@ -967,49 +972,26 @@ void API::slot_LocalSelectProperties()
 
 void API::slot_UpdateTableView(){
     qDebug()<<"\nBegin update";
-//    tables->clear();
-//    QStringList lst = global_db.tables();
-//    foreach (QString str, lst) {
-//        tables->addItem(str);
-//    }
-    //QSqlQueryModel a  = ().setQuery("SELECT * FROM materialTypes;",local_db)
-
     if(localMat->model())
     dynamic_cast<QSqlQueryModel*>(localMat->model())->setQuery("SELECT id, description FROM materials;",localDB);
 
-//    if(l_Model->model())
-//    dynamic_cast<QSqlQueryModel*>(l_Model->model())->setQuery("SELECT * FROM materialsModels;",local_db);
 
-//    if(l_Properties->model())
-//    dynamic_cast<QSqlQueryModel*>(l_Properties->model())->setQuery("SELECT * FROM propertyValueScalar;",local_db);
-
-//    if(Lib->model())
-//    dynamic_cast<QSqlQueryModel*>(Lib->model())->setQuery("SELECT * FROM materialTypes;",global_db);
     QSqlQuery query(globalDB);
     query.exec("SELECT * FROM materialTypes;");
     QStringList lst;
     lst << "Name" << "Description";
-    Lib->setHeaderLabels(lst);
-    Lib->clear();
+    classification->setHeaderLabels(lst);
+    classification->clear();
     while(query.next())
     {
-        QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(Lib);
+        QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(classification);
         ptwgItem->setText(0,query.value(0).toString());
         QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
         ptwgItemDir->setText(1, query.value(1).toString());
     }
     tabLib->setWidget(Tree);
     setColumnWidth();
-//    if(Mat->model())
-//       dynamic_cast<QSqlQueryModel*>(Mat->model())->setQuery("SELECT * FROM materials;",global_db);
 
-//    if(Model->model())
-//        dynamic_cast<QSqlQueryModel*>(Model->model())->setQuery("SELECT * FROM materialsModels;",global_db);
-
-//    if(Properties->model())
-//    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("SELECT * FROM propertyValueScalar;",global_db);
-
-    //qDebug()<<"\nend update";
 }
 
 void API::slot_ShowInsertForm()
@@ -1039,8 +1021,8 @@ void API::slot_DeleteMat()
         qDebug() << localQuery->lastError().text();
     }
     dynamic_cast<QSqlQueryModel*>(localMat->model())->setQuery("SELECT name, description FROM materials;",localDB);
-    localModel->setModel(nullptr);
-    Properties->setModel(nullptr);
+    dynamic_cast<QSqlQueryModel*>(localModel->model())->setQuery("select from nothing");
+    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
 
     setColumnWidth();
 }
@@ -1064,7 +1046,7 @@ void API::slot_DeleteModel()
 
 
 void API::setColumnWidth() {
-    Mat->setColumnWidth(1, 220);
+    materials->setColumnWidth(1, 220);
     Model->setColumnWidth(1,220);
     Properties->setColumnWidth(1,160);
     localModel->setColumnWidth(1,220);
@@ -1080,40 +1062,25 @@ API::~API()
 {
 
     insertForm->close();
-    qDebug()<<"destuctor";
-    qDebug()<<"destuctor";
-
     delete connectionForm;
     delete m_Layout;
-    qDebug()<<"destuctor";
-
-    delete Lib;
-    delete Mat;
+    delete classification;
+    delete materials;
     delete Model;
     delete Properties;
-    qDebug()<<"destuctor";
-
     delete localMat;
     delete localModel;
-    qDebug()<<"destuctor";
-
     delete tabLib;
     delete tabMat;
     delete tabModel;
-    qDebug()<<"destuctor";
-
     delete tabProperties;
-
     delete localTabMat;
     delete localTabModel;
-    qDebug()<<"destuctor";
 
     localDB.close();
     globalDB.close();
-    qDebug()<<"destuctor";
     globalDB.removeDatabase("qt_sql_default_connection");
     localDB.removeDatabase("qt_sql_default_connection");
-    qDebug()<<"destuctor";
     localDB.~QSqlDatabase();
     globalDB.~QSqlDatabase();
     qDebug()<<"destuctor";

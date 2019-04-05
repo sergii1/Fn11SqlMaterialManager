@@ -47,8 +47,8 @@ private:
     QSqlDatabase localDB;
 
     QTreeView* Tree;
-    QTreeWidget* Lib;
-    QTableView* Mat;
+    QTreeWidget* classification;
+    QTableView* materials;
     QTableView* Model;
 
     QTableView* Properties;
