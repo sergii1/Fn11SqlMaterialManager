@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     sh_tree.cpp \
     treeitem.cpp \
     dialog.cpp \
-    mytablewidget.cpp
+    mytablewidget.cpp \
+    mytreewidget.cpp
 
 HEADERS  += api.h \
     cls_connectionform.h \
@@ -29,11 +30,13 @@ HEADERS  += api.h \
     sh_tree.h \
     treeitem.h \
     dialog.h \
-    mytablewidget.h
+    mytablewidget.h \
+    mytreewidget.h
 
 FORMS    += \
     dialog.ui \
-    mytablewidget.ui
+    mytablewidget.ui \
+    mytreewidget.ui
 
 RESOURCES += \
     resources.qrc

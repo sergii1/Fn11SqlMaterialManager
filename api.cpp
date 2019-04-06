@@ -12,13 +12,26 @@ API::API(const QString& pathToDB, QWidget *parent) :
     flagSQLQuery = false;
 
 
-    Tree = new QTreeView();
+    materialTable = new MyTableWidget("Материалы");
+    modelTable = new MyTableWidget("Модели");
+    propertiesTable = new MyTableWidget("Свойства");
+    localMaterialTable = new MyTableWidget("Материалы");
+    localModelTable = new MyTableWidget("Модели");
+    classificationTree = new MyTreeWidget("Классификации");
+
+    materialTable->setStyleSheet("background:blue");
+    modelTable->setStyleSheet("background:blue");
+    localMaterialTable->setStyleSheet("background:green");
+    localModelTable->setStyleSheet("background:green");
+    classificationTree->setStyleSheet("background:blue");
+
+    Tree = classificationTree->getView();
     Tree->setAlternatingRowColors(true);
     Tree->setContextMenuPolicy(Qt::CustomContextMenu);
     Tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_TreeContextMenu(const QPoint&)));
 
-    Tree->show();
+    //Tree->show();
 
     QStringList headers;
     headers << tr("Title") << tr("Description");
@@ -29,18 +42,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QStringList lst;
     lst << "Name" << "Description";
     classification->setHeaderLabels(lst);
-
-
-    materialTable = new MyTableWidget("Материалы");
-    modelTable = new MyTableWidget("Модели");
-    propertiesTable = new MyTableWidget("Свойства");
-    localMaterialTable = new MyTableWidget("Материалы");
-    localModelTable = new MyTableWidget("Модели");
-
-    materialTable->setStyleSheet("background:blue");
-    modelTable->setStyleSheet("background:blue");
-    localMaterialTable->setStyleSheet("background:green");
-    localModelTable->setStyleSheet("background:green");
 
 
     materials = materialTable->getView();
@@ -78,15 +79,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
     localModel->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(localModel,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_Local_ModelContextMenu(const QPoint&)));
 
-    tabLib = new QDockWidget;
-    tabLib->setMaximumWidth(320);
-    QFont*font1 = new QFont();
-    font1->setPointSize(9);
-    tabLib->setTitleBarWidget(new QLabel("Классифиикация материалов"));
-    dynamic_cast<QLabel*>(tabLib->titleBarWidget())->setFont(*font1);
-    dynamic_cast<QLabel*>(tabLib->titleBarWidget())->setAlignment(Qt::AlignCenter);
-    tabLib->titleBarWidget()->setStyleSheet("QLabel {background: #80daeb}");
-    tabLib->setWidget(Tree);
 
     QWidget* body = new QWidget;
     body->setLayout(m_Layout);
@@ -97,11 +89,11 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QLabel* lbl_glb = new QLabel("Глобальная БД");
     QFont font = lbl_glb->font();
     font.setPixelSize(18);
-    lbl_glb->setFont(font);    
+    lbl_glb->setFont(font);
+    lbl_glb->setMargin(0);
     glb_layout->addWidget(lbl_glb,0,1,Qt::AlignHCenter);
     glb_layout->setContentsMargins(0,0,0,0);
-    tabLib->setStyleSheet("border: blue");
-    glb_layout->addWidget(tabLib,1,0);
+    glb_layout->addWidget(classificationTree,1,0);
     glb_layout->addWidget(materialTable,1,1);
     glb_layout->addWidget(modelTable,1,2);
     qDebug()<<"EEEEE";
@@ -110,6 +102,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     qDebug()<<"1";
     QWidget* local_area = new QWidget();
     QLabel* lbl_loc = new QLabel("Локальная БД");
+    lbl_loc->setMargin(0);
     lbl_loc->setFont(font);
     QGridLayout* local_layout = new QGridLayout();
     local_layout->setContentsMargins(0,0,0,0);
@@ -126,6 +119,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QVBoxLayout* lt = new QVBoxLayout();
     prop->setLayout(lt);
     QLabel* kostil = new QLabel("    ");
+    kostil->setMargin(0);
     kostil->setFont(font);
     lt->addWidget(kostil);
     lt->addWidget(propertiesTable);
@@ -256,15 +250,10 @@ API::API(const QString& pathToDB, QWidget *parent) :
     model->setQuery(str, localDB);
     connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectModel()));
 
-
-
-
     connect(materialTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
 
     modelTable->setModel(dynamic_cast<QSqlQueryModel*>(Model->model()));
     connect(modelTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
-
-
     connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
 
     pAct_tree_add_branch = new QAction("Добавить ветку");
@@ -278,7 +267,6 @@ API::API(const QString& pathToDB, QWidget *parent) :
     connect(pAct_tree_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddBranch()));
     connect(pAct_tree_remove_branch,SIGNAL(triggered()),this, SLOT(slot_RemoveBranch()));
     connect(pAct_tree_add_material,SIGNAL(triggered()),this,SLOT(slot_AddMaterial()));
-
 
     connectionForm = new cls_connectionForm();
     createConnection();
@@ -888,7 +876,6 @@ void API::slot_AddLib(const QString & newLib)
        QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
        ptwgItemDir->setText(1, query->value(1).toString());
    }
-   tabLib->setWidget(Tree);
 
     setColumnWidth();
     statusBar()->showMessage("Успешно", 3000);
@@ -936,7 +923,6 @@ void API::slot_UpdateTableView(){
         QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
         ptwgItemDir->setText(1, query.value(1).toString());
     }
-    tabLib->setWidget(Tree);
     setColumnWidth();
 
 }
@@ -1012,13 +998,6 @@ API::~API()
     delete Properties;
     delete localMat;
     delete localModel;
-    delete tabLib;
-
-    //delete tabModel;
-    //delete tabProperties;
-    //delete localTabMat;
-    //delete localTabModel;
-
     localDB.close();
     globalDB.close();
     globalDB.removeDatabase("qt_sql_default_connection");

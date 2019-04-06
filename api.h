@@ -23,7 +23,7 @@
 #include "sh_tree.h"
 #include "dialog.h"
 #include "mytablewidget.h"
-
+#include "mytreewidget.h"
 
 class API : public QMainWindow
 {
@@ -51,13 +51,9 @@ private:
     QTreeWidget* classification;
     QTableView* materials;
     QTableView* Model;
-
     QTableView* Properties;
-
-    QDockWidget* tabLib;
-    QDockWidget* tabMat;
-    QDockWidget* tabModel;
-    QDockWidget* tabProperties;
+    QTableView* localMat;
+    QTableView* localModel;
 
     //пробую заменить tabMat на MaterialTable
     MyTableWidget* materialTable;
@@ -65,15 +61,8 @@ private:
     MyTableWidget* propertiesTable;
     MyTableWidget* localMaterialTable;
     MyTableWidget* localModelTable;
+    MyTreeWidget* classificationTree;
 
-    QTableView* localMat;
-    QTableView* localModel;
-
-
-    QDockWidget* localTabMat;
-    QDockWidget* localTabModel;
-
-    QListWidget* tables;
 
     QAction* pactImport;
     QAction* pactExport;
