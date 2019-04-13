@@ -7,31 +7,21 @@ API::API(const QString& pathToDB, QWidget *parent) :
     QMainWindow(parent)
 {
     setWindowIcon(QIcon(":resources/sqldevops.png"));
-    m_Layout = new QGridLayout;
+
     flagImport=false;
     flagSQLQuery = false;
 
+    initTree();
 
-    materialTable = new MyTableWidget("Материалы");
     modelTable = new MyTableWidget("Модели");
     propertiesTable = new MyTableWidget("Свойства");
     localMaterialTable = new MyTableWidget("Материалы");
     localModelTable = new MyTableWidget("Модели");
-    classificationTree = new MyTreeWidget("Классификации");
 
-    materialTable->setStyleSheet("background:blue");
+
     modelTable->setStyleSheet("background:blue");
     localMaterialTable->setStyleSheet("background:green");
     localModelTable->setStyleSheet("background:green");
-    classificationTree->setStyleSheet("background:blue");
-
-    Tree = classificationTree->getView();
-    Tree->setAlternatingRowColors(true);
-    Tree->setContextMenuPolicy(Qt::CustomContextMenu);
-    Tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_TreeContextMenu(const QPoint&)));
-
-    //Tree->show();
 
     QStringList headers;
     headers << tr("Title") << tr("Description");
@@ -43,7 +33,11 @@ API::API(const QString& pathToDB, QWidget *parent) :
     lst << "Name" << "Description";
     classification->setHeaderLabels(lst);
 
-
+    materialTable = new MyTableWidget("Материалы");
+    materialTable->setStyleSheet("background:blue");
+    connect(materialTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
+    materialTable->getButton()->setToolTip("Добавить материал к ветке");
+    connect(materialTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_AddMaterial()));
     materials = materialTable->getView();
     materials->setModel(new QSqlQueryModel());
     materials->setAlternatingRowColors(true);
@@ -65,6 +59,8 @@ API::API(const QString& pathToDB, QWidget *parent) :
     Properties->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(Properties,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_PropertiesContextMenu(const QPoint&)));
 
+    localMaterialTable->getButton()->setToolTip("Добавить материал");
+    connect(localMaterialTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_local_add_mat()));
     localMat = localMaterialTable->getView();
     localMat->setModel(new QSqlQueryModel());
     localMat->setAlternatingRowColors(true);
@@ -79,56 +75,45 @@ API::API(const QString& pathToDB, QWidget *parent) :
     localModel->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(localModel,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_Local_ModelContextMenu(const QPoint&)));
 
+    initBody();
 
-    QWidget* body = new QWidget;
-    body->setLayout(m_Layout);
-    setCentralWidget(body);
+    initMenu();
 
-    QWidget* glb_area = new QWidget();
-    QGridLayout* glb_layout = new QGridLayout();
-    QLabel* lbl_glb = new QLabel("Глобальная БД");
-    QFont font = lbl_glb->font();
-    font.setPixelSize(18);
-    lbl_glb->setFont(font);
-    lbl_glb->setMargin(0);
-    glb_layout->addWidget(lbl_glb,0,1,Qt::AlignHCenter);
-    glb_layout->setContentsMargins(0,0,0,0);
-    glb_layout->addWidget(classificationTree,1,0);
-    glb_layout->addWidget(materialTable,1,1);
-    glb_layout->addWidget(modelTable,1,2);
-    qDebug()<<"EEEEE";
+    initLocalDb(pathToDB);
 
-    glb_area->setLayout(glb_layout);
-    qDebug()<<"1";
-    QWidget* local_area = new QWidget();
-    QLabel* lbl_loc = new QLabel("Локальная БД");
-    lbl_loc->setMargin(0);
-    lbl_loc->setFont(font);
-    QGridLayout* local_layout = new QGridLayout();
-    local_layout->setContentsMargins(0,0,0,0);
-    local_layout->addWidget(lbl_loc,0,0,1,3,Qt::AlignHCenter);
-    local_layout->addWidget(localMaterialTable,1,0,1,1);
-    local_layout->addWidget(localModelTable,1,2,1,1);
-    local_area->setLayout(local_layout);
+    globalDB = QSqlDatabase::addDatabase("QPSQL");
+    insertForm = new cls_insert_form();
+    insertForm->globalDB = &globalDB;
+    insertForm->localDB = &localDB;
 
-    QSplitter* vSplit1 = new QSplitter(Qt::Vertical);
-    vSplit1->addWidget(glb_area);
-    vSplit1->addWidget(local_area);
+    materials->verticalHeader()->setDefaultSectionSize(28);
+    Model->verticalHeader()->setDefaultSectionSize(28);
+    Properties->verticalHeader()->setDefaultSectionSize(28);
+    localMat->verticalHeader()->setDefaultSectionSize(28);
+    localModel->verticalHeader()->setDefaultSectionSize(28);
 
-    QWidget* prop = new QWidget();
-    QVBoxLayout* lt = new QVBoxLayout();
-    prop->setLayout(lt);
-    QLabel* kostil = new QLabel("    ");
-    kostil->setMargin(0);
-    kostil->setFont(font);
-    lt->addWidget(kostil);
-    lt->addWidget(propertiesTable);
-    lt->setContentsMargins(0,0,0,0);
+    connect(this,SIGNAL(needUpdateTableView()),this,SLOT(slot_UpdateTableView()));
+    connect(insertForm,SIGNAL(needUpdateTableView()),this,SLOT(slot_UpdateTableView()));
 
-    prop->setMaximumWidth(300);
-    m_Layout->addWidget(vSplit1,0,0,1,1);
-    m_Layout->addWidget(prop,0,1,1,1);
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localMat->model());
+    QString str ="SELECT id, description  FROM materials;";
+    model->setQuery(str, localDB);
+    connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectModel()));
 
+    modelTable->setModel(dynamic_cast<QSqlQueryModel*>(Model->model()));
+    connect(modelTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
+    connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
+
+    connectionForm = new cls_connectionForm();
+    connectionForm->setWindowIcon(QIcon(":resources/addDB.png"));
+    connect(connectionForm->pbtnConnect,SIGNAL(clicked()), this, SLOT(slot_createConnection()));
+
+    //statusBar()->setStyleSheet("background: #0A0FFF");
+    statusBar()->showMessage("Подключите БД", 10000);
+    slot_createConnection();
+}
+
+void API::initMenu(){
     QToolBar* ptb = new QToolBar("Панель инструментов");
     QMenu* pmnuConnect = new QMenu("&Подключение");
     QAction* pactConnect = new QAction ("Подключение к серверу...", nullptr) ;
@@ -137,7 +122,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     pactConnect->setIcon (QPixmap(":resources/addDB.png"));
     ptb->addAction(pactConnect);
     pmnuConnect->addAction(pactConnect);
-    connect(pactConnect, SIGNAL(triggered(bool)) , this, SLOT(slot_FormConnection()));
+    connect(pactConnect, SIGNAL(triggered(bool)) , this, SLOT(slot_createConnectionDialog()));
     menuBar()->addMenu(pmnuConnect);
     ptb->addSeparator();
     QMenu* pmnuTools = new QMenu("Инструменты");
@@ -177,84 +162,71 @@ API::API(const QString& pathToDB, QWidget *parent) :
     pmnuFAQ->addAction(pactFAQ);
     menuBar()->addMenu(pmnuFAQ);
 
-    localDB = QSqlDatabase::addDatabase("QSQLITE", "Local");
-    globalDB = QSqlDatabase::addDatabase("QPSQL");
-    insertForm = new cls_insert_form();
-    insertForm->globalDB = &globalDB;
-    insertForm->localDB = &localDB;
-
-    materials->verticalHeader()->setDefaultSectionSize(28);
-    Model->verticalHeader()->setDefaultSectionSize(28);
-    Properties->verticalHeader()->setDefaultSectionSize(28);
-    localMat->verticalHeader()->setDefaultSectionSize(28);
-    localModel->verticalHeader()->setDefaultSectionSize(28);
-    connect(this,SIGNAL(needUpdateTableView()),this,SLOT(slot_UpdateTableView()));
     connect(pactImport, SIGNAL(triggered(bool)), this, SLOT(slot_Import()));
     connect(pactExport, SIGNAL(triggered(bool)), this, SLOT(slot_Export()));
     connect(pactAddData, SIGNAL(triggered(bool)), this, SLOT(slot_ShowInsertForm()));
     connect(pactDeleteMat, SIGNAL(triggered(bool)), this, SLOT(slot_DeleteMat()));
     connect(pactDeleteModel, SIGNAL(triggered(bool)), this, SLOT(slot_DeleteModel()));
     connect(pactFAQ, SIGNAL(triggered(bool)), this, SLOT(slot_About()));
-    connect(insertForm,SIGNAL(needUpdateTableView()),this,SLOT(slot_UpdateTableView()));
+}
 
-    statusBar()->showMessage("Подключите БД", 10000);
-    localDB.setDatabaseName(pathToDB);
-    localDB.open();
+void API::initBody(){
+    m_Layout = new QGridLayout;
+    QWidget* body = new QWidget;
+    body->setLayout(m_Layout);
+    setCentralWidget(body);
 
-    QSqlQuery* localQuery;
-    localQuery = new QSqlQuery(localDB);
-    QString str = "PRAGMA foreign_keys = on";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
+    QWidget* glb_area = new QWidget();
+    QGridLayout* glb_layout = new QGridLayout();
+    QLabel* lbl_glb = new QLabel("Глобальная БД");
+    QFont font = lbl_glb->font();
+    font.setPixelSize(18);
+    lbl_glb->setFont(font);
+    lbl_glb->setMargin(0);
+    glb_layout->addWidget(lbl_glb,0,1,Qt::AlignHCenter);
+    glb_layout->setContentsMargins(0,0,0,0);
+    glb_layout->addWidget(classificationTree,1,0);
+    glb_layout->addWidget(materialTable,1,1);
+    glb_layout->addWidget(modelTable,1,2);
+    glb_area->setLayout(glb_layout);
+    QWidget* local_area = new QWidget();
+    QLabel* lbl_loc = new QLabel("Локальная БД");
+    lbl_loc->setMargin(0);
+    lbl_loc->setFont(font);
+    QGridLayout* local_layout = new QGridLayout();
+    local_layout->setContentsMargins(0,0,0,0);
+    local_layout->addWidget(lbl_loc,0,0,1,3,Qt::AlignHCenter);
+    local_layout->addWidget(localMaterialTable,1,0,1,1);
+    local_layout->addWidget(localModelTable,1,2,1,1);
+    local_area->setLayout(local_layout);
 
-    str = "CREATE TABLE materials(id primary key, description text);";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
+    QSplitter* vSplit1 = new QSplitter(Qt::Vertical);
+    vSplit1->addWidget(glb_area);
+    vSplit1->addWidget(local_area);
 
-    str = "create table models(name text primary key, description text);";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
+    QWidget* prop = new QWidget();
+    QVBoxLayout* lt = new QVBoxLayout();
+    prop->setLayout(lt);
+    QLabel* kostil = new QLabel("    ");
+    kostil->setMargin(0);
+    kostil->setFont(font);
+    lt->addWidget(kostil);
+    lt->addWidget(propertiesTable);
+    lt->setContentsMargins(0,0,0,0);
 
-    str = "create table properties (name text primary key, description text);";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
+    prop->setMaximumWidth(300);
+    m_Layout->addWidget(vSplit1,0,0,1,1);
+    m_Layout->addWidget(prop,0,1,1,1);
 
-    str = "create table modelComposition(models_name text references models(name) ON DELETE CASCADE, properties_name text  references properties(name));";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
+}
 
-    str = "CREATE TABLE materialsModels(materials_name text references materials(id) ON DELETE CASCADE, models_name text references models(name) ON DELETE CASCADE,  primary key(materials_name, models_name));";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
-
-    str = "CREATE TABLE propertyValueScalar(materials_name text references materials(id) ON DELETE CASCADE, properties_name text, value float not null, primary key(materials_name, properties_name));";
-    if(!localQuery->exec(str)){
-        qDebug() << localQuery->lastQuery();
-        qDebug() << localQuery->lastError().text();
-    }
-
-    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localMat->model());
-    str ="SELECT id, description  FROM materials;";
-    model->setQuery(str, localDB);
-    connect(localMat, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectModel()));
-
-    connect(materialTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
-
-    modelTable->setModel(dynamic_cast<QSqlQueryModel*>(Model->model()));
-    connect(modelTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectProperties()));
-    connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
+void API::initTree(){
+    classificationTree = new MyTreeWidget("Классификации");
+    classificationTree->setStyleSheet("background:blue");
+    Tree = classificationTree->getView();
+    Tree->setAlternatingRowColors(true);
+    Tree->setContextMenuPolicy(Qt::CustomContextMenu);
+    Tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     pAct_tree_add_branch = new QAction("Добавить ветку");
     pAct_tree_remove_branch = new QAction("Удалить ветку");
@@ -262,16 +234,63 @@ API::API(const QString& pathToDB, QWidget *parent) :
     pAct_tree_remove_classification = new QAction("Удалить классификацию");
     pAct_tree_add_material = new QAction("Добавить материал");
 
+    connect(Tree,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_TreeContextMenu(const QPoint&)));
     connect(pAct_tree_add_classification,SIGNAL(triggered()),this,SLOT(slot_AddClassification()));
     connect(pAct_tree_remove_classification,SIGNAL(triggered()),this, SLOT(slot_RemoveClassification()));
     connect(pAct_tree_add_branch,SIGNAL(triggered()),this,SLOT(slot_AddBranch()));
     connect(pAct_tree_remove_branch,SIGNAL(triggered()),this, SLOT(slot_RemoveBranch()));
     connect(pAct_tree_add_material,SIGNAL(triggered()),this,SLOT(slot_AddMaterial()));
-
-    connectionForm = new cls_connectionForm();
-    createConnection();
 }
 
+void API::initLocalDb(const QString& pathToDB){
+    localDB = QSqlDatabase::addDatabase("QSQLITE", "Local");
+    localDB.setDatabaseName(pathToDB);
+    localDB.open();
+
+    QSqlQuery* localQuery;
+    localQuery = new QSqlQuery(localDB);
+    QString str = "PRAGMA foreign_keys = on";
+    if(!localQuery->exec(str)){
+        //qDebug() << localQuery->lastQuery();
+        //qDebug() << localQuery->lastError().text();
+    }
+
+    str = "CREATE TABLE materials(id primary key, description text);";
+    if(!localQuery->exec(str)){
+      //  qDebug() << localQuery->lastQuery();
+        //qDebug() << localQuery->lastError().text();
+    }
+
+    str = "create table models(name text primary key, description text);";
+    if(!localQuery->exec(str)){
+       // qDebug() << localQuery->lastQuery();
+        //qDebug() << localQuery->lastError().text();
+    }
+
+    str = "create table properties (name text primary key, description text);";
+    if(!localQuery->exec(str)){
+       // qDebug() << localQuery->lastQuery();
+        //qDebug() << localQuery->lastError().text();
+    }
+
+    str = "create table modelComposition(models_name text references models(name) ON DELETE CASCADE, properties_name text  references properties(name));";
+    if(!localQuery->exec(str)){
+       // qDebug() << localQuery->lastQuery();
+       // qDebug() << localQuery->lastError().text();
+    }
+
+    str = "CREATE TABLE materialsModels(materials_name text references materials(id) ON DELETE CASCADE, models_name text references models(name) ON DELETE CASCADE,  primary key(materials_name, models_name));";
+    if(!localQuery->exec(str)){
+        //qDebug() << localQuery->lastQuery();
+        //qDebug() << localQuery->lastError().text();
+    }
+
+    str = "CREATE TABLE propertyValueScalar(materials_name text references materials(id) ON DELETE CASCADE, properties_name text, value float not null, primary key(materials_name, properties_name));";
+    if(!localQuery->exec(str)){
+        //qDebug() << localQuery->lastQuery();
+        //qDebug() << localQuery->lastError().text();
+    }
+}
 
 void API::slot_TreeContextMenu(const QPoint& pos){
     QModelIndex index = Tree->indexAt(pos);
@@ -504,8 +523,15 @@ void API::slot_AddBranch(){
 }
 
 void API::slot_AddMaterial(){
-    if(!Tree->currentIndex().isValid())
+    QModelIndex index = Tree->currentIndex();
+    if(!index.isValid()){
+        statusBar()->showMessage("Выберите в дереве узел, в который можно добавлять",3000);
         return;
+    }
+    if(index.child(0,0).isValid()){
+        statusBar()->showMessage("Выберите в дереве узел, в который можно добавлять",3000);
+        return;
+    }
     //qDebug()<<"Material  "<<getFullPath(Tree->currentIndex());
 
     Dialog inputDialog;
@@ -566,23 +592,12 @@ QString API::getScheme(const QString& path){
       return scheme;
 }
 
-void API::slot_FormConnection()
+void API::slot_createConnectionDialog()
 {
-    connectionForm->setWindowIcon(QIcon(":resources/addDB.png"));
-    connect(connectionForm->pbtnConnect,SIGNAL(clicked()), this, SLOT(slot_Connection()));
     connectionForm->show();
 }
 
-void API::slot_Connection()
-{
-    if(createConnection()){
-        connectionForm->close();
-        emit connectionIsCreated();
-    }
-
-}
-
-bool API::createConnection()
+void API::slot_createConnection()
 {
     globalDB.setDatabaseName(connectionForm->nameDB->text());
     globalDB.setUserName(connectionForm->nameUser->text());
@@ -600,22 +615,17 @@ bool API::createConnection()
         statusBar()->showMessage("Ошибка подключения", 3000);
      }
 
-    QSqlQuery* query = new QSqlQuery(globalDB);
-    query->exec("SELECT * FROM materialTypes;");
+    QSqlQuery query(globalDB);
+    query.exec("SELECT * FROM materialTypes;");
     QStringList lst;
     classification->clear();
-    while(query->next())
+    while(query.next())
     {
         QTreeWidgetItem *ptwgItem = new QTreeWidgetItem(classification);
-        ptwgItem->setText(0,query->value(0).toString());
+        ptwgItem->setText(0,query.value(0).toString());
         QTreeWidgetItem *ptwgItemDir = new QTreeWidgetItem(ptwgItem);
-        ptwgItemDir->setText(1, query->value(1).toString());
+        ptwgItemDir->setText(1, query.value(1).toString());
     }
-    //tabMat->show();
-    //tabModel->show();
-    //tabProperties->show();
-    //localTabMat->show();
-   // localTabModel->show();
     connect(Tree, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectMat()));
     this->insertForm->globalDB=&globalDB;
     this->insertForm->localDB=&localDB;
@@ -629,7 +639,8 @@ bool API::createConnection()
     Tree->setColumnWidth(0, 500);
     qDebug() << Tree_Model->getRootItem()->data(0);
     Tree->header()->hide();
-    return true;
+
+    connectionForm->close();
 }
 
 void API::slot_SelectMat()
@@ -649,12 +660,9 @@ void API::slot_SelectModel()
     qDebug()<<"select model";
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Model->model());
     nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
-    QTime time;
-    qDebug() << time.currentTime().toString();
     QString str = "SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
     globalDB.open();
     model->setQuery(str, globalDB);
-    qDebug() << time.currentTime().toString();
     dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothign");
     setColumnWidth();
     pactImport->setEnabled(false);
@@ -971,7 +979,6 @@ void API::slot_DeleteModel()
     Properties->setModel(nullptr);
     setColumnWidth();
 }
-
 
 void API::setColumnWidth() {
     materials->setColumnWidth(1, 220);

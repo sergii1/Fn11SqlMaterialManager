@@ -31,7 +31,6 @@ class API : public QMainWindow
 
 public:
     explicit API(const QString& pathToDB,QWidget *parent = nullptr);
-    bool createConnection();
     QPushButton* createButton(const QString& str);
     ~API();
 
@@ -88,6 +87,10 @@ private:
     void setColumnWidth();
     QString getFullPath(const QModelIndex& index);
     QString getScheme(const QString& path);
+    void initTree();
+    void initLocalDb(const QString& pathToDB);
+    void initBody();
+    void initMenu();
 public slots:
 
     void slot_TreeContextMenu(const QPoint&);
@@ -112,8 +115,8 @@ public slots:
     void slot_add_model();
     void slot_add_material();
 
-    void slot_FormConnection();
-    void slot_Connection();
+    void slot_createConnectionDialog();
+    void slot_createConnection();
 
     void slot_SelectMat();
     void slot_SelectModel();
