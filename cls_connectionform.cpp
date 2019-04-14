@@ -27,20 +27,15 @@ cls_connectionForm::cls_connectionForm(QWidget *parent):QDialog(parent){
     vLayout = new QVBoxLayout();
     vLayout->addWidget(new QLabel("DB name"));
     vLayout->addWidget(nameDB);
-
     vLayout->addWidget(new QLabel("User name"));
     vLayout->addWidget(nameUser);
-
     vLayout->addWidget(new QLabel("Host"));
     vLayout->addWidget(Host);
-
     vLayout->addWidget(new QLabel("Port"));
     vLayout->addWidget(Port);
-
     vLayout->addWidget(new QLabel("Password"));
     vLayout->addWidget(Password);
     vLayout->addWidget(pbtnConnect);
-
     setLayout(vLayout);
     resize(400,400);
 }

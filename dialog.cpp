@@ -6,14 +6,30 @@ bool Dialog::needInsert = false;
 QString Dialog::description = "";
 QString Dialog::name = "";
 
-Dialog::Dialog(QWidget *parent) :
+Dialog::Dialog(const QString& firstLabel, const QString& secondLabel,QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Dialog)
 {
     Dialog::name = "";
     Dialog::description = "";
     Dialog::needInsert = false;
+    //ui->labelMaterial->setText(firstLabel);
+   // ui->labelDescription->setText(secondLabel);
     ui->setupUi(this);
+}
+
+QLabel* Dialog::getLabel1(){
+    return ui->labelMaterial;
+}
+QLabel* Dialog::getLabel2(){
+    return ui->labelDescription;
+}
+
+QLineEdit* Dialog::getLineEdit1(){
+    return ui->lineEditMaterial;
+}
+QLineEdit* Dialog::getLineEdit2(){
+    return ui->lineEditDescription;
 }
 
 QString Dialog::getName(){

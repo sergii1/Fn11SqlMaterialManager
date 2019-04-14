@@ -5,9 +5,6 @@ cls_export_form::cls_export_form(QStringList& lst, QWidget *parent) : QDialog(pa
     setModal(true);
     setWindowFlags (windowFlags() & ~Qt::WindowContextHelpButtonHint);
     setWindowTitle("EXPORT");
-    //VLayout.addWidget(new QLabel("В какую библиотеку добавить новые материалы?"));
-    //InputLib.setFixedSize(250,50);
-   //VLayout.addWidget(&InputLib);
     libList.addItems(lst);
 
     addLibMode.setText("добавить библиотеку");

@@ -38,6 +38,8 @@ public:
 private:
     QString nameMaterial;
 
+    bool properiesIsGlobal;
+
     cls_connectionForm* connectionForm;
     cls_insert_form* insertForm;
     cls_export_form* exportForm;
@@ -63,6 +65,7 @@ private:
     MyTreeWidget* classificationTree;
 
 
+    //QAtion которые в верхнем меню
     QAction* pactImport;
     QAction* pactExport;
     QAction* pactAddData;
@@ -77,6 +80,13 @@ private:
     QAction* pAct_tree_add_classification;
     QAction* pAct_tree_remove_classification;
     QAction* pAct_tree_add_material;
+
+
+    QAction* pAct_LocalAddMat;
+    QAction* pAct_LocalAddModel;
+    QAction* pAct_AddMat;
+    QAction* pAct_AddModel;
+    QAction* pAct_AddProp;
 
     QString newLib;
     QTextEdit* InputLib;
