@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     treeitem.cpp \
     dialog.cpp \
     mytablewidget.cpp \
-    mytreewidget.cpp
+    mytreewidget.cpp \
+    correlatedialog.cpp
 
 HEADERS  += api.h \
     cls_connectionform.h \
@@ -31,12 +32,14 @@ HEADERS  += api.h \
     treeitem.h \
     dialog.h \
     mytablewidget.h \
-    mytreewidget.h
+    mytreewidget.h \
+    correlatedialog.h
 
 FORMS    += \
     dialog.ui \
     mytablewidget.ui \
-    mytreewidget.ui
+    mytreewidget.ui \
+    correlatedialog.ui
 
 RESOURCES += \
     resources.qrc

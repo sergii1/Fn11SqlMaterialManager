@@ -6,7 +6,7 @@ bool Dialog::needInsert = false;
 QString Dialog::description = "";
 QString Dialog::name = "";
 
-Dialog::Dialog(const QString& firstLabel, const QString& secondLabel,QWidget *parent) :
+Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Dialog)
 {

@@ -179,6 +179,13 @@ void API::initMenu(){
     pAct_AddProp = new QAction;
     pAct_AddProp->setDisabled(true);
     connect(pAct_AddProp,SIGNAL(triggered()),this, SLOT(slot_add_properties()));
+
+    pAct_local_MandM_Correlate =new QAction("Сопоставить материал и модель");
+    connect(pAct_local_MandM_Correlate,SIGNAL(triggered()),this, SLOT(slot_LocalCorrelateMaterialAndModel()));
+
+    pAct_MandM_Correlate = new QAction("Сопоставить материал и модель");
+    connect(pAct_MandM_Correlate,SIGNAL(triggered()),this, SLOT(slot_CorrelateMaterialAndModel()));
+
 }
 
 void API::initBody(){
@@ -340,7 +347,7 @@ void API::slot_TreeContextMenu(const QPoint& pos){
 
 void API::slot_MatContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu;
-    context_menu->addAction(pAct_AddMat);
+    context_menu->addAction(pAct_MandM_Correlate);
     context_menu->popup(materials->mapToGlobal(pos));
 }
 
@@ -363,7 +370,7 @@ void API::slot_PropertiesContextMenu(const QPoint& pos){
 
 void API::slot_Local_MatContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu();
-    context_menu->addAction(pAct_LocalAddMat);
+    context_menu->addAction(pAct_local_MandM_Correlate);
     context_menu->popup(localMat->mapToGlobal(pos));
 }
 
@@ -372,6 +379,28 @@ void API::slot_Local_ModelContextMenu(const QPoint& pos){
     context_menu->addAction(pAct_LocalAddModel);
     context_menu->popup(localModel->mapToGlobal(pos));
 }
+
+//нужно дорабатывать
+void API::slot_LocalCorrelateMaterialAndModel(){
+    QModelIndex index = materials->currentIndex();
+    CorrelateDialog dialog;
+    dialog.getLabel1()->setText("Материал");
+    dialog.getLabel1()->setText("Модель");
+    dialog.getComboBox1()->addItems({"mat1","mat2"});
+    dialog.getComboBox2()->addItems({"model1","model2"});
+    dialog.resize(400,140);
+    dialog.exec();
+    //не была нажата кнопка сопоставить
+    if(!CorrelateDialog::needCorrelate)
+        return;
+    QString material = CorrelateDialog::getField1();
+    QString model = CorrelateDialog::getField2();
+    qDebug()<<material<<model;
+
+}
+
+//нужно сделать по аналогии с предыдущим
+void API::slot_CorrelateMaterialAndModel(){}
 
 void API::slot_local_add_model(){
     Dialog inputDialog;
@@ -482,10 +511,6 @@ void API::slot_add_model(){
 
     str ="SELECT name, description  FROM models;";
     dynamic_cast<QSqlQueryModel*>(Model->model())->setQuery(str,globalDB);
-}
-
-void API::slot_add_material(){
-
 }
 
 void API::slot_RemoveClassification(){
@@ -754,6 +779,30 @@ void API::slot_SelectProperties()
 
 }
 
+void API::slot_LocalSelectModel()
+{
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localModel->model());
+    nameMaterial = localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
+    QString str = "SELECT models_name, description "
+                  "FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
+    model->setQuery(str, localDB);
+    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
+    setColumnWidth();
+}
+
+void API::slot_LocalSelectProperties()
+{
+    QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
+    QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
+    model->setQuery(str, localDB);
+    qDebug() << model->lastError().text();
+    propertiesTable->setStyleSheet("background: green");
+    properiesIsGlobal = false;
+    pAct_AddProp->setDisabled(false);
+    setColumnWidth();
+}
+
 void API::slot_Import()
 {
     globalDB.close();
@@ -962,30 +1011,6 @@ void API::slot_AddLib(const QString & newLib)
     setColumnWidth();
     statusBar()->showMessage("Успешно", 3000);
     delete globalQuery;
-}
-
-void API::slot_LocalSelectModel()
-{
-    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localModel->model());
-    nameMaterial = localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
-    QString str = "SELECT models_name, description "
-                  "FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
-    model->setQuery(str, localDB);
-    dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
-    setColumnWidth();
-}
-
-void API::slot_LocalSelectProperties()
-{
-    QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
-    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
-    QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
-    model->setQuery(str, localDB);
-    qDebug() << model->lastError().text();
-    propertiesTable->setStyleSheet("background: green");
-    properiesIsGlobal = false;
-    pAct_AddProp->setDisabled(false);
-    setColumnWidth();
 }
 
 void API::slot_UpdateTableView(){

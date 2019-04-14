@@ -24,6 +24,8 @@
 #include "dialog.h"
 #include "mytablewidget.h"
 #include "mytreewidget.h"
+#include "correlatedialog.h"
+
 
 class API : public QMainWindow
 {
@@ -31,7 +33,6 @@ class API : public QMainWindow
 
 public:
     explicit API(const QString& pathToDB,QWidget *parent = nullptr);
-    QPushButton* createButton(const QString& str);
     ~API();
 
 
@@ -56,14 +57,12 @@ private:
     QTableView* localMat;
     QTableView* localModel;
 
-    //пробую заменить tabMat на MaterialTable
     MyTableWidget* materialTable;
     MyTableWidget* modelTable;
     MyTableWidget* propertiesTable;
     MyTableWidget* localMaterialTable;
     MyTableWidget* localModelTable;
     MyTreeWidget* classificationTree;
-
 
     //QAtion которые в верхнем меню
     QAction* pactImport;
@@ -81,12 +80,15 @@ private:
     QAction* pAct_tree_remove_classification;
     QAction* pAct_tree_add_material;
 
-
     QAction* pAct_LocalAddMat;
     QAction* pAct_LocalAddModel;
     QAction* pAct_AddMat;
     QAction* pAct_AddModel;
     QAction* pAct_AddProp;
+
+    //M and M = Material and model
+    QAction* pAct_local_MandM_Correlate;
+    QAction* pAct_MandM_Correlate;
 
     QString newLib;
     QTextEdit* InputLib;
@@ -123,7 +125,6 @@ public slots:
     void slot_local_add_mat();
     void slot_add_properties();
     void slot_add_model();
-    void slot_add_material();
 
     void slot_createConnectionDialog();
     void slot_createConnection();
@@ -138,6 +139,9 @@ public slots:
 
     void slot_AddLib(const QString &);
 
+    void slot_LocalCorrelateMaterialAndModel();
+    void slot_CorrelateMaterialAndModel();
+
     void slot_DeleteMat();
     void slot_DeleteModel();
 
@@ -148,7 +152,6 @@ public slots:
 
     void slot_About();
 signals:
-    void connectionIsCreated();
     void needUpdateTableView();
 };
 

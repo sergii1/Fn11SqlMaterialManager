@@ -13,7 +13,7 @@ class Dialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit Dialog(const QString& firstLabel = "Введите название материала", const QString& secondLabel = "Введите описание",QWidget *parent = nullptr);
+    explicit Dialog(QWidget *parent = nullptr);
     ~Dialog();
     QLabel* getLabel1();
     QLabel* getLabel2();
