@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConnectionDialog</class>
+ <widget class="QDialog" name="ConnectionDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>301</width>
+    <height>320</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="1">
+      <widget class="QRadioButton" name="rb_local">
+       <property name="text">
+        <string>Локальная</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QRadioButton" name="rb_global">
+       <property name="text">
+        <string>Глобальная</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QStackedWidget" name="stackedWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="page">
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Укажите путь к базе данных</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="bnt_fileExplorer">
+             <property name="text">
+              <string>Обзор...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="line_path"/>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_localConnect">
+             <property name="text">
+              <string>Connect</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_2">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QLabel" name="lbl_dbName">
+             <property name="text">
+              <string>Database name</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="line_dbName">
+             <property name="text">
+              <string>fn1132_2016</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbl_userName">
+             <property name="text">
+              <string>User name</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="line_userName">
+             <property name="text">
+              <string>student</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lb_host">
+             <property name="text">
+              <string>Host</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="line_host">
+             <property name="text">
+              <string>195.19.32.74</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbl_port">
+             <property name="text">
+              <string>Port</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="line_port">
+             <property name="text">
+              <string>5432</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbl_password">
+             <property name="text">
+              <string>Password</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="line_password">
+             <property name="text">
+              <string>bmstu</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_globalConnect">
+             <property name="text">
+              <string>Connect</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

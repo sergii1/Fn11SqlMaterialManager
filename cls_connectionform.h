@@ -8,6 +8,7 @@
 class cls_connectionForm: public QDialog{
 public:
     explicit cls_connectionForm(QWidget *parent = nullptr);
+    QComboBox* typeOfDb;
     QLineEdit* nameDB;
     QLineEdit* nameUser;
     QLineEdit* Host;

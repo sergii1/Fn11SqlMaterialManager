@@ -100,9 +100,9 @@ API::API(const QString& pathToDB, QWidget *parent) :
 
     connect(localModel, SIGNAL(clicked(QModelIndex)), this, SLOT(slot_LocalSelectProperties()));
 
-    connectionForm = new cls_connectionForm();
+    connectionForm = new ConnectionDialog(&globalDB);
     connectionForm->setWindowIcon(QIcon(":resources/addDB.png"));
-    connect(connectionForm->pbtnConnect,SIGNAL(clicked()), this, SLOT(slot_createConnection()));
+    connect(connectionForm->get_btn_globalConnect(),SIGNAL(clicked()), this, SLOT(slot_createConnection()));
 
     //statusBar()->setStyleSheet("background: #0A0FFF");
     statusBar()->showMessage("Подключите БД", 10000);
@@ -862,11 +862,13 @@ void API::slot_createConnectionDialog()
 
 void API::slot_createConnection()
 {
-    globalDB.setDatabaseName(connectionForm->nameDB->text());
-    globalDB.setUserName(connectionForm->nameUser->text());
-    globalDB.setHostName(connectionForm->Host->text());
-    globalDB.setPort(connectionForm->Port->text().toInt());
-    globalDB.setPassword(connectionForm->Password->text());
+    qDebug()<<"create connection";
+    QString c = connectionForm->getHost();
+    globalDB.setDatabaseName(connectionForm->getNameDB());
+    globalDB.setUserName(connectionForm->getUserName());
+    globalDB.setHostName(connectionForm->getHost());
+    globalDB.setPort(connectionForm->getPort());
+    globalDB.setPassword(connectionForm->getPassword());
     if (!globalDB.open()) {
         qDebug()<<"db not open";
         QMessageBox* pmbx =

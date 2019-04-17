@@ -26,6 +26,7 @@
 #include "mytreewidget.h"
 #include "correlatedialog.h"
 #include "propertiesvaluesetter.h"
+#include "connectiondialog.h"
 
 class API : public QMainWindow
 {
@@ -41,7 +42,7 @@ private:
 
     bool properiesIsGlobal;
 
-    cls_connectionForm* connectionForm;
+    ConnectionDialog* connectionForm;
     cls_insert_form* insertForm;
     cls_export_form* exportForm;
 

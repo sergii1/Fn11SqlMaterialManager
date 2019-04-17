@@ -15,5 +15,7 @@
         <file>resources/SQL.png</file>
         <file>resources/sqldevops.png</file>
         <file>resources/Plus.png</file>
+        <file>resources/ask_sign.png</file>
+        <file>resources/znak-voprosa.jpg</file>
     </qresource>
 </RCC>

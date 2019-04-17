@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     mytablewidget.cpp \
     mytreewidget.cpp \
     correlatedialog.cpp \
-    propertiesvaluesetter.cpp
+    propertiesvaluesetter.cpp \
+    connectiondialog.cpp
 
 HEADERS  += api.h \
     cls_connectionform.h \
@@ -35,14 +36,16 @@ HEADERS  += api.h \
     mytablewidget.h \
     mytreewidget.h \
     correlatedialog.h \
-    propertiesvaluesetter.h
+    propertiesvaluesetter.h \
+    connectiondialog.h
 
 FORMS    += \
     dialog.ui \
     mytablewidget.ui \
     mytreewidget.ui \
     correlatedialog.ui \
-    propertiesvaluesetter.ui
+    propertiesvaluesetter.ui \
+    connectiondialog.ui
 
 RESOURCES += \
     resources.qrc
