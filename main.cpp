@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     it++;
     *it='d';
     it++;
-    *it ='b';
+    *it ='b'; //SMCMP
     qDebug()<<"path"<<path;
     API w(path);
     QDesktopWidget dsk;

@@ -21,6 +21,7 @@ cls_connectionForm::cls_connectionForm(QWidget *parent):QDialog(parent){
 
     Password = new QLineEdit();
     Password->setText("bmstu");
+    Password->setEchoMode(QLineEdit::Password);
     pbtnConnect = new QPushButton("Connect");
 
     //layout setup

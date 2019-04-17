@@ -25,7 +25,7 @@
 #include "mytablewidget.h"
 #include "mytreewidget.h"
 #include "correlatedialog.h"
-
+#include "propertiesvaluesetter.h"
 
 class API : public QMainWindow
 {
@@ -89,6 +89,12 @@ private:
     //M and M = Material and model
     QAction* pAct_local_MandM_Correlate;
     QAction* pAct_MandM_Correlate;
+    //M and P = model and properties
+    QAction* pAct_local_MandP_Correlate;
+    QAction* pAct_MandP_Correlate;
+
+    QAction* pAct_SetLocalPropertiesValue;
+    QAction* pAct_SetPropertiesValue;
 
     QString newLib;
     QTextEdit* InputLib;
@@ -141,6 +147,12 @@ public slots:
 
     void slot_LocalCorrelateMaterialAndModel();
     void slot_CorrelateMaterialAndModel();
+
+    void slot_LocalCorrelateModelAndProperties();
+    void slot_CorrelateModelAndProperties();
+
+    void slot_SetLocalPropertiesValue();
+    void slot_SetPropertiesValue();
 
     void slot_DeleteMat();
     void slot_DeleteModel();
