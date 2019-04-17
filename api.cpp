@@ -216,11 +216,11 @@ void API::initBody(){
     font.setPixelSize(18);
     lbl_glb->setFont(font);
     lbl_glb->setMargin(0);
-    glb_layout->addWidget(lbl_glb,0,1,Qt::AlignHCenter);
+    glb_layout->addWidget(lbl_glb,0,0,1,2,Qt::AlignHCenter);
     glb_layout->setContentsMargins(0,0,0,0);
-    glb_layout->addWidget(classificationTree,1,0);
-    glb_layout->addWidget(materialTable,1,1);
-    glb_layout->addWidget(modelTable,1,2);
+    //glb_layout->addWidget(classificationTree,1,0);
+    glb_layout->addWidget(materialTable,1,0);
+    glb_layout->addWidget(modelTable,1,1);
     glb_area->setLayout(glb_layout);
     QWidget* local_area = new QWidget();
     QLabel* lbl_loc = new QLabel("Постановка задачи");
@@ -248,8 +248,11 @@ void API::initBody(){
     lt->setContentsMargins(0,0,0,0);
 
     prop->setMaximumWidth(300);
-    m_Layout->addWidget(vSplit1,0,0,1,1);
-    m_Layout->addWidget(prop,0,1,1,1);
+    classificationTree->setMaximumWidth(300);
+
+    m_Layout->addWidget(classificationTree,0,0,2,1);
+    m_Layout->addWidget(vSplit1,0,1,1,1);
+    m_Layout->addWidget(prop,0,2,1,1);
 
 }
 
