@@ -201,6 +201,22 @@ void API::initMenu(){
     pAct_SetPropertiesValue = new QAction("Задать значение свойству материала");
     connect(pAct_SetPropertiesValue,SIGNAL(triggered()),this, SLOT(slot_SetPropertiesValue()));
 
+    pAct_LocalRomoveMat = new QAction("Удалить материал");
+    connect(pAct_LocalRomoveMat,SIGNAL(triggered()),this, SLOT(slot_local_remove_mat()));
+
+    pAct_LocalRevoveModel = new QAction("Удалить модель");
+    connect(pAct_LocalRevoveModel,SIGNAL(triggered()),this, SLOT(slot_local_remove_model()));
+
+    pAct_RemoveMat = new QAction("Удалить материал");
+    connect(pAct_RemoveMat,SIGNAL(triggered()),this, SLOT(slot_remove_mat()));
+
+    pAct_RemoveModel = new QAction("Удалить модель");
+    connect(pAct_RemoveModel,SIGNAL(triggered()),this, SLOT(slot_remove_model()));
+
+    pAct_RemoveProp = new QAction("Удалить свойство");
+    connect(pAct_RemoveProp,SIGNAL(triggered()),this, SLOT(slot_remove_properties()));
+
+
 }
 
 void API::initBody(){
@@ -367,23 +383,30 @@ void API::slot_MatContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu;
     context_menu->addAction(pAct_MandM_Correlate);
     context_menu->addAction(pAct_SetPropertiesValue);
+    context_menu->addAction(pAct_RemoveMat);
     context_menu->popup(materials->mapToGlobal(pos));
 }
 
 void API::slot_ModelContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu;
     context_menu->addAction(pAct_MandP_Correlate);
+    context_menu->addAction(pAct_RemoveModel);
     context_menu->popup(Model->mapToGlobal(pos));
 }
 
 void API::slot_PropertiesContextMenu(const QPoint& pos){
 
     QMenu* context_menu = new QMenu;
-    if(properiesIsGlobal)
+    if(properiesIsGlobal){
         pAct_AddProp->setText("Добавить свойство к глобальной БД");
-    else
+        pAct_RemoveProp->setText("Удалить свойство из глобальной БД");
+    }
+    else{
         pAct_AddProp->setText("Добавить свойство к локальной БД");
+        pAct_RemoveProp->setText("Удалить свойство из локальной БД");
+    }
     context_menu->addAction(pAct_AddProp);
+    context_menu->addAction(pAct_RemoveProp);
     context_menu->popup(Properties->mapToGlobal(pos));
 }
 
@@ -391,13 +414,45 @@ void API::slot_Local_MatContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu();
     context_menu->addAction(pAct_local_MandM_Correlate);
     context_menu->addAction(pAct_SetLocalPropertiesValue);
+    context_menu->addAction(pAct_LocalRomoveMat);
     context_menu->popup(localMat->mapToGlobal(pos));
 }
 
 void API::slot_Local_ModelContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu;
     context_menu->addAction(pAct_local_MandP_Correlate);
+    context_menu->addAction(pAct_LocalRevoveModel);
     context_menu->popup(localModel->mapToGlobal(pos));
+}
+
+
+
+/*
+!!!
+НУЖНО ДОДЕЛАТЬ
+!!!
+!!
+!!!
+*/
+void API::slot_local_remove_model(){
+    qDebug()<<"slot_local_remove_model";
+}
+
+void API::slot_local_remove_mat(){
+    qDebug()<<"slot_local_remove_mat";
+}
+
+void API::slot_remove_properties(){
+    qDebug()<<"slot_remove_properties";
+}
+
+void API::slot_remove_model(){
+    qDebug()<<"slot_remove_model";
+}
+
+void API::slot_remove_mat(){
+    qDebug()<<"slot_remove_mat";
+
 }
 
 //нужно дорабатывать
@@ -424,7 +479,7 @@ void API::slot_LocalCorrelateMaterialAndModel(){
     query.exec("INSERT INTO materialsmodels(materials_name, models_name) VALUES ('" + material + "', '" + model + "')");
 }
 
-//нужно сделать по аналогии с предыдущим
+//нужно поправить
 void API::slot_CorrelateMaterialAndModel(){
     QModelIndex index = materials->currentIndex();
     CorrelateDialog dialog;

@@ -87,6 +87,12 @@ private:
     QAction* pAct_AddModel;
     QAction* pAct_AddProp;
 
+    QAction* pAct_LocalRomoveMat;
+    QAction* pAct_LocalRevoveModel;
+    QAction* pAct_RemoveMat;
+    QAction* pAct_RemoveModel;
+    QAction* pAct_RemoveProp;
+
     //M and M = Material and model
     QAction* pAct_local_MandM_Correlate;
     QAction* pAct_MandM_Correlate;
@@ -132,6 +138,12 @@ public slots:
     void slot_local_add_mat();
     void slot_add_properties();
     void slot_add_model();
+
+    void slot_local_remove_model();
+    void slot_local_remove_mat();
+    void slot_remove_properties();
+    void slot_remove_model();
+    void slot_remove_mat();
 
     void slot_createConnectionDialog();
     void slot_createConnection();
