@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     mytreewidget.cpp \
     correlatedialog.cpp \
     propertiesvaluesetter.cpp \
-    connectiondialog.cpp
+    connectiondialog.cpp \
+    helpbrowser.cpp
 
 HEADERS  += api.h \
     cls_connectionform.h \
@@ -37,7 +38,8 @@ HEADERS  += api.h \
     mytreewidget.h \
     correlatedialog.h \
     propertiesvaluesetter.h \
-    connectiondialog.h
+    connectiondialog.h \
+    helpbrowser.h
 
 FORMS    += \
     dialog.ui \

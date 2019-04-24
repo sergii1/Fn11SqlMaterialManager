@@ -27,6 +27,7 @@
 #include "correlatedialog.h"
 #include "propertiesvaluesetter.h"
 #include "connectiondialog.h"
+#include "helpbrowser.h"
 
 class API : public QMainWindow
 {
@@ -176,6 +177,7 @@ public slots:
     void slot_UpdateTableView();
 
     void slot_About();
+    void slot_Help();
 signals:
     void needUpdateTableView();
 };

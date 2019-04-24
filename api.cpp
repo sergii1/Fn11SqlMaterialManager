@@ -153,10 +153,15 @@ void API::initMenu(){
     QMenu* pmnuFAQ = new QMenu("Справка");
     pactFAQ = new QAction("О программе");
     pactFAQ->setIcon(QIcon(":resources/FAQ.png"));
+    QAction* pactHelp = new QAction("Помощь");
+
     ptb->addSeparator();
     ptb->addAction(pactFAQ);
     pmnuFAQ->addAction(pactFAQ);
+    pmnuFAQ->addAction(pactHelp);
     menuBar()->addMenu(pmnuFAQ);
+
+    connect(pactHelp, SIGNAL(triggered(bool)), this, SLOT(slot_Help()));
 
     connect(pactImport, SIGNAL(triggered(bool)), this, SLOT(slot_Import()));
     connect(pactExport, SIGNAL(triggered(bool)), this, SLOT(slot_Export()));
@@ -429,9 +434,7 @@ void API::slot_Local_ModelContextMenu(const QPoint& pos){
 
 /*
 !!!
-НУЖНО ДОДЕЛАТЬ
-!!!
-!!
+TODO
 !!!
 */
 void API::slot_local_remove_model(){
@@ -1320,6 +1323,11 @@ void API::setColumnWidth() {
 void API::slot_About()
 {
     QMessageBox::about(this, "О программе", "Шамшидов О.\nЧепурной С. \nФН11-32");
+}
+
+void API::slot_Help(){
+    qDebug()<<"help";
+    HelpBrowser::showPage("index.html");
 }
 
 API::~API()
