@@ -25,7 +25,7 @@ HelpBrowser::HelpBrowser(const QString &p_path, const QString &p_page, QWidget *
               textBrowser, SLOT(backward()));
       connect(closeButton, SIGNAL(clicked()),
               this, SLOT(close()));
-      connect(textBrowser, SIGNAL(sourceChanged(const QUrl &src)),
+      connect(textBrowser, SIGNAL(sourceChanged(const QUrl&)),
               this, SLOT(updateCaption()));
 
       textBrowser->setSearchPaths({p_path});
