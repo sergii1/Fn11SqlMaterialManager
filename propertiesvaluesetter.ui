@@ -36,9 +36,6 @@
      <item row="2" column="2">
       <widget class="QComboBox" name="comboBox_2"/>
      </item>
-     <item row="2" column="1">
-      <widget class="QComboBox" name="comboBox"/>
-     </item>
      <item row="0" column="1">
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -89,6 +86,16 @@
       <widget class="QPushButton" name="pushButton">
        <property name="text">
         <string>Задать значение</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>

@@ -18,11 +18,11 @@ PropertiesValueSetter::PropertiesValueSetter(QWidget *parent) :
 }
 
 QComboBox* PropertiesValueSetter::getComboBox1(){
-    return ui->comboBox;
+    return ui->comboBox_2;
 }
 
-QComboBox* PropertiesValueSetter::getComboBox2(){
-    return ui->comboBox_2;
+QLabel* PropertiesValueSetter::getLabel(){
+    return ui->label_4;
 }
 
 QDoubleSpinBox* PropertiesValueSetter::getSpinBox(){
@@ -49,7 +49,7 @@ PropertiesValueSetter::~PropertiesValueSetter()
 void PropertiesValueSetter::on_pushButton_clicked()
 {
     PropertiesValueSetter::needSetValue = true;
-    PropertiesValueSetter::field1 = ui->comboBox->currentText();
+    PropertiesValueSetter::field1 = ui->label_4->text();
     PropertiesValueSetter::field2 = ui->comboBox_2->currentText();
     PropertiesValueSetter::value = ui->doubleSpinBox->value();
     this->close();

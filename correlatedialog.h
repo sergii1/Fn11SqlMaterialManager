@@ -16,8 +16,8 @@ public:
     ~CorrelateDialog();
     QLabel* getLabel1();
     QLabel* getLabel2();
-    QComboBox* getComboBox1();
-    QComboBox* getComboBox2();
+    QLabel* getLabel3();
+    QComboBox* getComboBox();
     static QString getField1();
     static QString getField2();
     static bool needCorrelate;

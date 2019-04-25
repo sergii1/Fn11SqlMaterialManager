@@ -18,7 +18,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
 
     materialTable = new MyTableWidget("Материалы");
     materialTable->setStyleSheet("background:#1dacd6");
-    materialTable->getButton()->setStyleSheet("background:#3fcef8");
+    //materialTable->getButton()->setStyleSheet("background:#3fcef8");
     connect(materialTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
     materialTable->getButton()->setToolTip("Добавить материал к ветке");
     connect(materialTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_AddMaterial()));
@@ -42,6 +42,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     connect(Model,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_ModelContextMenu(const QPoint&)));
 
     propertiesTable = new MyTableWidget("Свойства");
+    propertiesTable->getButton()->setDisabled(true);
     Properties = propertiesTable->getView();
     Properties->setModel(new QSqlQueryModel());
     Properties->setAlternatingRowColors(true);
@@ -55,6 +56,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
     localMaterialTable->getButton()->setToolTip("Добавить материал");
     connect(localMaterialTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_local_add_mat()));
     localMat = localMaterialTable->getView();
+    localMat->setSelectionMode(QTableView::SelectionMode::SingleSelection);
     localMat->setModel(new QSqlQueryModel());
     localMat->setAlternatingRowColors(true);
     localMat->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -63,6 +65,7 @@ API::API(const QString& pathToDB, QWidget *parent) :
 
     localModelTable = new MyTableWidget("Модели");
     connect(localModelTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_local_add_model()));
+    localModelTable->getButton()->setToolTip("Добавить модель");
     localModelTable->setStyleSheet("background:#1cd3a2");
     localModel = localModelTable->getView();
     localModel->setModel(new QSqlQueryModel());
@@ -385,6 +388,10 @@ void API::slot_TreeContextMenu(const QPoint& pos){
 }
 
 void API::slot_MatContextMenu(const QPoint& pos){
+    QModelIndex index = materials->indexAt(pos);
+    if(!index.isValid() || index.column()!=0){
+        return;
+    }
     QMenu* context_menu = new QMenu;
     context_menu->addAction(pAct_MandM_Correlate);
     context_menu->addAction(pAct_SetPropertiesValue);
@@ -393,6 +400,11 @@ void API::slot_MatContextMenu(const QPoint& pos){
 }
 
 void API::slot_ModelContextMenu(const QPoint& pos){
+    QModelIndex index = Model->indexAt(pos);
+    if(!index.isValid() || index.column()!=0){
+        return;
+    }
+
     QMenu* context_menu = new QMenu;
     context_menu->addAction(pAct_MandP_Correlate);
     context_menu->addAction(pAct_RemoveModel);
@@ -400,7 +412,10 @@ void API::slot_ModelContextMenu(const QPoint& pos){
 }
 
 void API::slot_PropertiesContextMenu(const QPoint& pos){
-
+    QModelIndex index = Properties->indexAt(pos);
+    if(!index.isValid() || index.column()!=0){
+        return;
+    }
     QMenu* context_menu = new QMenu;
     if(properiesIsGlobal){
         pAct_AddProp->setText("Добавить свойство к глобальной БД");
@@ -416,6 +431,11 @@ void API::slot_PropertiesContextMenu(const QPoint& pos){
 }
 
 void API::slot_Local_MatContextMenu(const QPoint& pos){
+    QModelIndex index = localMat->indexAt(pos);
+    if(!index.isValid() || index.column()!=0){
+        return;
+    }
+
     QMenu* context_menu = new QMenu();
     context_menu->addAction(pAct_local_MandM_Correlate);
     context_menu->addAction(pAct_SetLocalPropertiesValue);
@@ -424,6 +444,10 @@ void API::slot_Local_MatContextMenu(const QPoint& pos){
 }
 
 void API::slot_Local_ModelContextMenu(const QPoint& pos){
+    QModelIndex index = localModel->indexAt(pos);
+    if(!index.isValid() || index.column()!=0){
+        return;
+    }
     QMenu* context_menu = new QMenu;
     context_menu->addAction(pAct_local_MandP_Correlate);
     context_menu->addAction(pAct_LocalRevoveModel);
@@ -460,17 +484,17 @@ void API::slot_remove_mat(){
 
 //нужно дорабатывать
 void API::slot_LocalCorrelateMaterialAndModel(){
-    QModelIndex index = materials->currentIndex();
+    QModelIndex index = localMat->currentIndex();
+    if(!index.isValid())
+        return;
     CorrelateDialog dialog;
     dialog.getLabel1()->setText("Материал");
-    dialog.getLabel1()->setText("Модель");
+    dialog.getLabel2()->setText("Модель");
     QSqlQuery query(localDB);
-    query.exec("SELECT * FROM materials");
-    while(query.next())
-        dialog.getComboBox1()->addItem(query.value(0).toString());
+    dialog.getLabel3()->setText(index.data().toString());
     query.exec("SELECT * FROM models");
     while(query.next())
-        dialog.getComboBox2()->addItem(query.value(0).toString());
+        dialog.getComboBox()->addItem(query.value(0).toString());
     dialog.resize(400,140);
     dialog.exec();
     //не была нажата кнопка сопоставить
@@ -485,16 +509,16 @@ void API::slot_LocalCorrelateMaterialAndModel(){
 //нужно поправить
 void API::slot_CorrelateMaterialAndModel(){
     QModelIndex index = materials->currentIndex();
+    if(!index.isValid())
+        return;
     CorrelateDialog dialog;
     dialog.getLabel1()->setText("Материал");
     dialog.getLabel2()->setText("Модель");
     QSqlQuery query(globalDB);
-    query.exec("SELECT * FROM materials");
-    while(query.next())
-        dialog.getComboBox1()->addItem(query.value(0).toString());
+    dialog.getLabel3()->setText(index.data().toString());
     query.exec("SELECT * FROM models");
     while(query.next())
-        dialog.getComboBox2()->addItem(query.value(0).toString());
+        dialog.getComboBox()->addItem(query.value(0).toString());
     dialog.resize(400,140);
     dialog.exec();
     //не была нажата кнопка сопоставить
@@ -507,18 +531,18 @@ void API::slot_CorrelateMaterialAndModel(){
 }
 
 void API::slot_LocalCorrelateModelAndProperties(){
-    qDebug()<<"local";
+    qDebug()<<"local CorrelateModelAndProperties";
     QModelIndex index = localModel->currentIndex();
+    if(!index.isValid())
+        return;
     CorrelateDialog dialog;
     dialog.getLabel1()->setText("Модель");
-    dialog.getLabel2()->setText("свойство");
+    dialog.getLabel2()->setText("Свойство");
     QSqlQuery query(localDB);
-    query.exec("SELECT * FROM models");
-    while(query.next())
-        dialog.getComboBox1()->addItem(query.value(0).toString());
+    dialog.getLabel3()->setText(index.data().toString());
     query.exec("SELECT * FROM properties");
     while(query.next())
-        dialog.getComboBox2()->addItem(query.value(0).toString());
+        dialog.getComboBox()->addItem(query.value(0).toString());
     dialog.resize(400,140);
     dialog.exec();
     //не была нажата кнопка сопоставить
@@ -536,17 +560,17 @@ void API::slot_LocalCorrelateModelAndProperties(){
 
 void API::slot_CorrelateModelAndProperties(){
     qDebug()<<"global";
-    QModelIndex index = localModel->currentIndex();
+    QModelIndex index = Model->currentIndex();
+    if(!index.isValid())
+        return;
     CorrelateDialog dialog;
     dialog.getLabel1()->setText("Модель");
     dialog.getLabel2()->setText("Свойство");
     QSqlQuery query(globalDB);
-    query.exec("SELECT * FROM models");
-    while(query.next())
-        dialog.getComboBox1()->addItem(query.value(0).toString());
+    dialog.getLabel3()->setText(index.data().toString());
     query.exec("SELECT * FROM properties");
     while(query.next())
-        dialog.getComboBox2()->addItem(query.value(0).toString());
+        dialog.getComboBox()->addItem(query.value(0).toString());
     dialog.resize(400,140);
     dialog.exec();
     //не была нажата кнопка сопоставить
@@ -565,16 +589,16 @@ void API::slot_CorrelateModelAndProperties(){
 
 void API::slot_SetLocalPropertiesValue(){
 
-    qDebug()<<"global";
-    QModelIndex index = localModel->currentIndex();
+    qDebug()<<"local";
+    QModelIndex index = localMat->currentIndex();
+    if(!index.isValid())
+        return;
     PropertiesValueSetter dialog;
     QSqlQuery query(localDB);
-    query.exec("SELECT * FROM materials");
-    while(query.next())
-        dialog.getComboBox1()->addItem(query.value(0).toString());
+    dialog.getLabel()->setText(index.data().toString());
     query.exec("SELECT * FROM properties");
     while(query.next())
-        dialog.getComboBox2()->addItem(query.value(0).toString());
+        dialog.getComboBox1()->addItem(query.value(0).toString());
     dialog.resize(400,140);
     dialog.exec();
     //не была нажата кнопка сопоставить
@@ -600,15 +624,15 @@ void API::slot_SetLocalPropertiesValue(){
 
 void API::slot_SetPropertiesValue(){
     qDebug()<<"global";
-    QModelIndex index = localModel->currentIndex();
+    QModelIndex index = materials->currentIndex();
+    if(!index.isValid())
+        return;
     PropertiesValueSetter dialog;
     QSqlQuery query(globalDB);
-    query.exec("SELECT * FROM materials");
-    while(query.next())
-        dialog.getComboBox1()->addItem(query.value(0).toString());
+    dialog.getLabel()->setText(index.data().toString());
     query.exec("SELECT * FROM properties");
     while(query.next())
-        dialog.getComboBox2()->addItem(query.value(0).toString());
+        dialog.getComboBox1()->addItem(query.value(0).toString());
     dialog.resize(400,140);
     dialog.exec();
     //не была нажата кнопка сопоставить
@@ -1001,8 +1025,9 @@ void API::slot_SelectProperties()
     QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
     QString str = "select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     model->setQuery(str, globalDB);
-
+    propertiesTable->getButton()->setDisabled(false);
     propertiesTable->setStyleSheet("background: #1dacd6");
+    propertiesTable->getButton()->setToolTip("Добавить свойство в глобальню таблицу");
     properiesIsGlobal = true;
     pactImport->setEnabled(true);
     pAct_AddProp->setDisabled(false);
@@ -1028,6 +1053,8 @@ void API::slot_LocalSelectProperties()
     QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     model->setQuery(str, localDB);
     qDebug() << model->lastError().text();
+    propertiesTable->getButton()->setToolTip("Добавить свойство в локальную таблицу");
+    propertiesTable->getButton()->setDisabled(false);
     propertiesTable->setStyleSheet("background: #1cd3a2");
     properiesIsGlobal = false;
     pAct_AddProp->setDisabled(false);

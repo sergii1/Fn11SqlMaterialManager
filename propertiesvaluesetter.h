@@ -15,7 +15,7 @@ public:
     explicit PropertiesValueSetter(QWidget *parent = nullptr);
     ~PropertiesValueSetter();
     QComboBox* getComboBox1();
-    QComboBox* getComboBox2();
+    QLabel* getLabel();
     QDoubleSpinBox* getSpinBox();
     static QString getField1();
     static QString getField2();

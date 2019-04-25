@@ -23,11 +23,11 @@ QLabel* CorrelateDialog::getLabel2(){
     return ui->label_2;
 }
 
-QComboBox* CorrelateDialog::getComboBox1(){
-    return ui->comboBox;
+QLabel* CorrelateDialog::getLabel3(){
+    return ui->label_3;
 }
 
-QComboBox* CorrelateDialog::getComboBox2(){
+QComboBox* CorrelateDialog::getComboBox(){
     return ui->comboBox_2;
 }
 
@@ -47,7 +47,7 @@ CorrelateDialog::~CorrelateDialog()
 void CorrelateDialog::on_pushButton_clicked()
 {
     CorrelateDialog::needCorrelate=true;
-    CorrelateDialog::field1 = ui->comboBox->currentText();
+    CorrelateDialog::field1 = ui->label_3->text();
     CorrelateDialog::field2 = ui->comboBox_2->currentText();
     this->close();
 }
