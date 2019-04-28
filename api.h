@@ -88,7 +88,7 @@ private:
     QAction* pAct_AddModel;
     QAction* pAct_AddProp;
 
-    QAction* pAct_LocalRomoveMat;
+    QAction* pAct_LocalRemoveMat;
     QAction* pAct_LocalRevoveModel;
     QAction* pAct_RemoveMat;
     QAction* pAct_RemoveModel;

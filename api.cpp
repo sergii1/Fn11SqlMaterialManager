@@ -209,8 +209,8 @@ void API::initMenu(){
     pAct_SetPropertiesValue = new QAction("Задать значение свойству материала");
     connect(pAct_SetPropertiesValue,SIGNAL(triggered()),this, SLOT(slot_SetPropertiesValue()));
 
-    pAct_LocalRomoveMat = new QAction("Удалить материал");
-    connect(pAct_LocalRomoveMat,SIGNAL(triggered()),this, SLOT(slot_local_remove_mat()));
+    pAct_LocalRemoveMat = new QAction("Удалить материал");
+    connect(pAct_LocalRemoveMat,SIGNAL(triggered()),this, SLOT(slot_local_remove_mat()));
 
     pAct_LocalRevoveModel = new QAction("Удалить модель");
     connect(pAct_LocalRevoveModel,SIGNAL(triggered()),this, SLOT(slot_local_remove_model()));
@@ -439,7 +439,7 @@ void API::slot_Local_MatContextMenu(const QPoint& pos){
     QMenu* context_menu = new QMenu();
     context_menu->addAction(pAct_local_MandM_Correlate);
     context_menu->addAction(pAct_SetLocalPropertiesValue);
-    context_menu->addAction(pAct_LocalRomoveMat);
+    context_menu->addAction(pAct_LocalRemoveMat);
     context_menu->popup(localMat->mapToGlobal(pos));
 }
 
@@ -462,22 +462,97 @@ TODO
 !!!
 */
 void API::slot_local_remove_model(){
+    QSqlQuery* Query;
+    Query = new QSqlQuery(localDB);
+    QString str;
+    QString nameModel =localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
+    str= "DELETE FROM materialsModels WHERE materials_name  = '" + nameMaterial + "' AND models_name = '" + nameModel + "';";
+    if(!Query->exec(str)){
+        qDebug() << Query->lastQuery();
+        qDebug() << Query->lastError().text();
+    }
+    dynamic_cast<QSqlQueryModel*>(localModel->model())->setQuery("SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';",localDB);
     qDebug()<<"slot_local_remove_model";
 }
 
 void API::slot_local_remove_mat(){
+    QSqlQuery* Query;
+    Query = new QSqlQuery(localDB);
+    QString str;
+    QString nameMaterial =localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
+    str= "DELETE FROM materials WHERE id  = '" + nameMaterial + "';";
+    if(!Query->exec(str)){
+        qDebug() << Query->lastQuery();
+        qDebug() << Query->lastError().text();
+    }
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(localMat->model());
+    model->setQuery("SELECT id, description FROM materials;",localDB);
     qDebug()<<"slot_local_remove_mat";
 }
 
 void API::slot_remove_properties(){
+    if(properiesIsGlobal){
+        QSqlQuery* Query;
+        Query = new QSqlQuery(globalDB);
+        QString str;
+        QString nameMaterial = materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
+        QString nameModel = Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
+        QString namePropertie =Properties->model()->data(Properties->model()->index(Properties->currentIndex().row(), 0)).toString();
+        str= "DELETE FROM propertyValueScalar WHERE properties_name  = '" + namePropertie + "';";
+        if(!Query->exec(str)){
+            qDebug() << Query->lastQuery();
+            qDebug() << Query->lastError().text();
+        }
+        QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
+        model->setQuery("select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';",globalDB);
+        qDebug()<<"slot_local_remove_propertir";
+    }
+    else{
+        QSqlQuery* Query;
+        Query = new QSqlQuery(localDB);
+        QString str;
+        QString nameMaterial = localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
+        QString nameModel = localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
+        QString namePropertie =Properties->model()->data(Properties->model()->index(Properties->currentIndex().row(), 0)).toString();
+        str= "DELETE FROM propertyValueScalar WHERE properties_name  = '" + namePropertie + "';";
+        if(!Query->exec(str)){
+            qDebug() << Query->lastQuery();
+            qDebug() << Query->lastError().text();
+        }
+        QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(Properties->model());
+        model->setQuery("select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';",localDB);
+        qDebug()<<"slot_local_remove_propertir";
+    }
     qDebug()<<"slot_remove_properties";
 }
 
 void API::slot_remove_model(){
+    QSqlQuery* Query;
+    Query = new QSqlQuery(globalDB);
+    QString str;
+    QString nameModel =Model->model()->data(Model->model()->index(Model->currentIndex().row(), 0)).toString();
+    str= "DELETE FROM materialsModels WHERE materials_name  = '" + nameMaterial + "' AND models_name = '" + nameModel + "';";
+    if(!Query->exec(str)){
+        qDebug() << Query->lastQuery();
+        qDebug() << Query->lastError().text();
+    }
+    dynamic_cast<QSqlQueryModel*>(Model->model())->setQuery("SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';",globalDB);
     qDebug()<<"slot_remove_model";
 }
 
 void API::slot_remove_mat(){
+    QSqlQuery* Query;
+    Query = new QSqlQuery(globalDB);
+    QString str;
+    QString nameMaterial =materials->model()->data(materials->model()->index(materials->currentIndex().row(), 0)).toString();
+    str= "DELETE FROM material_branch WHERE id_material  = '" + nameMaterial + "';";
+    if(!Query->exec(str)){
+        qDebug() << Query->lastQuery();
+        qDebug() << Query->lastError().text();
+    }
+    QString path = getFullPath(Tree->currentIndex());
+    QSqlQueryModel* model = dynamic_cast<QSqlQueryModel*>(materials->model());
+    model->setQuery("SELECT id, description FROM material_branch RIGHT JOIN materials ON material_branch.id_material = materials.id WHERE material_branch.branch  <@ '" + path + "';",globalDB);
     qDebug()<<"slot_remove_mat";
 
 }
@@ -1085,8 +1160,7 @@ void API::slot_Import()
             qDebug() << localQuery->lastError().text();
         }
     }
-
-    if(!globalQuery->exec("SELECT * FROM models;")){
+    if(!globalQuery->exec("SELECT * FROM models WHERE name ='"+ nameModel  +"';")){
         qDebug() << globalQuery->lastQuery();
         qDebug() << globalQuery->lastError().text();
     }
@@ -1101,7 +1175,7 @@ void API::slot_Import()
     }
 
 
-    if(!globalQuery->exec("SELECT * FROM properties;")){
+    if(!globalQuery->exec("select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';")){
         qDebug()<<globalQuery->lastQuery();
         qDebug()<<globalQuery->lastError().text();
 
@@ -1115,7 +1189,7 @@ void API::slot_Import()
         }
     }
 
-    if(!globalQuery->exec("SELECT * FROM modelComposition;")){
+    if(!globalQuery->exec("SELECT * FROM modelComposition WHERE models_name='"+ nameModel  +"';")){
         qDebug()<<globalQuery->lastQuery();
         qDebug()<<globalQuery->lastError().text();
     }
@@ -1137,7 +1211,6 @@ void API::slot_Import()
             qDebug() << localQuery->lastError().text();;
         }
     }
-    str ="SELECT * FROM materialTypes;";
 
     globalQuery->exec("SELECT * FROM propertyValueScalar WHERE materials_name = '" + nameMaterial + "';");
     while(globalQuery->next())
@@ -1158,9 +1231,11 @@ void API::slot_Import()
 
 void API::slot_Export()
 {
+    QString nameMaterial = localMat->model()->data(localMat->model()->index(localMat->currentIndex().row(), 0)).toString();
+    QString nameModel = localModel->model()->data(localModel->model()->index(localModel->currentIndex().row(), 0)).toString();
     QSqlQuery* globalQuery = new QSqlQuery(globalDB);
     QSqlQuery* localQuery = new QSqlQuery(localDB);
-    localQuery->exec("SELECT * FROM materials;");
+    localQuery->exec("SELECT * FROM materials WHERE id ='"+ nameMaterial +"';");
     QString str;
     while(localQuery->next())
     {
@@ -1171,7 +1246,7 @@ void API::slot_Export()
             qDebug()<<globalQuery->lastError().text();
         }
     }
-    localQuery->exec("SELECT * FROM models;");
+    localQuery->exec("SELECT * FROM models WHERE name ='"+ nameModel  +"';");
     while(localQuery->next())
     {
         str = "INSERT INTO models(name, description) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
@@ -1181,7 +1256,7 @@ void API::slot_Export()
         }
     }
 
-    localQuery->exec("SELECT * FROM properties;");
+    localQuery->exec("select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';");
     while(localQuery->next())
     {
         str = "INSERT INTO properties(name) values ('" + localQuery->value(0).toString() + "');";
@@ -1191,7 +1266,7 @@ void API::slot_Export()
         }
     }
 
-    localQuery->exec("SELECT * FROM modelComposition;");
+    localQuery->exec("SELECT * FROM modelComposition WHERE models_name ='"+ nameModel  +"';");
     while(localQuery->next())
     {
         str = "INSERT INTO modelComposition(models_name, properties_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
@@ -1200,19 +1275,29 @@ void API::slot_Export()
             qDebug()<<globalQuery->lastError().text();
         }
     }
-    localQuery->exec("SELECT * FROM materialsModels;");
+//    localQuery->exec("SELECT * FROM materialsModels;");
+//    while(localQuery->next())
+//    {
+//        qDebug() << localQuery->value(0).toString();
+//        qDebug() << localQuery->value(1).toString();
+//        str = "INSERT INTO materialsModels(materials_name, models_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
+//        if(!globalQuery->exec(str)){
+//            qDebug()<<globalQuery->lastQuery();
+//            qDebug()<<globalQuery->lastError().text();
+//        }
+//    }
+
+    localQuery->exec("SELECT * FROM materialsModels WHERE models_name = '" + nameModel + "' AND materials_name = '" + nameMaterial + "';");
     while(localQuery->next())
     {
-        qDebug() << localQuery->value(0).toString();
-        qDebug() << localQuery->value(1).toString();
         str = "INSERT INTO materialsModels(materials_name, models_name) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "');";
         if(!globalQuery->exec(str)){
-            qDebug()<<globalQuery->lastQuery();
-            qDebug()<<globalQuery->lastError().text();
+            qDebug() << str;
+            qDebug() << globalQuery->lastError().text();;
         }
     }
 
-    localQuery->exec("SELECT * FROM propertyValueScalar;");
+    localQuery->exec("SELECT * FROM propertyValueScalar WHERE materials_name = '" + nameMaterial + "';");
     while(localQuery->next())
     {
         str = "INSERT INTO propertyValueScalar(materials_name, properties_name, value) VALUES ('" + localQuery->value(0).toString() + "', '" + localQuery->value(1).toString() + "', '" + localQuery->value(2).toString() + "');";
