@@ -7,6 +7,7 @@ h1{
 	font: italic 5em Georgia;
 	color: rgb(23, 109, 109); 
 	margin: 1em 0 1em;}
+	text-align: center;
 }
 
 img { margin: 0 20px 0 0; }
@@ -15,6 +16,10 @@ h1 img { margin-bottom: -20px; }
 
 p img {margin-right: 50px}
 
+p{
+}
+
 p small{
+	text-align: center;
 	color: #666666;
 }

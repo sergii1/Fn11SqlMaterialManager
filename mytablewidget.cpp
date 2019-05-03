@@ -33,9 +33,15 @@ QPushButton* MyTableWidget::getButton(){
     return ui->pushButton;
 }
 
+QPushButton *MyTableWidget::getSelectButton()
+{
+    return ui->pushButton_2;
+}
+
 void MyTableWidget::setStyleSheet(const QString& p_qss){
     ui->label->setStyleSheet(p_qss);
     ui->pushButton->setStyleSheet(p_qss);
+    ui->pushButton_2->setStyleSheet(p_qss);
 }
 
 MyTableWidget::~MyTableWidget()

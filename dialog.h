@@ -27,6 +27,8 @@ private slots:
     void on_buttonBox_2_accepted();
 
 
+    void on_buttonBox_2_rejected();
+
 private:
     static QString name;
     static QString description;

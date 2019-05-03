@@ -60,3 +60,9 @@ void Dialog::on_buttonBox_2_accepted()
     this->close();
 
 }
+
+void Dialog::on_buttonBox_2_rejected()
+{
+    qDebug()<<"сancel_perssed";
+    this->close();
+}

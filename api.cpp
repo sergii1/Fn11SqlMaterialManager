@@ -20,6 +20,8 @@ API::API(const QString& pathToDB, QWidget *parent) :
     materialTable->setStyleSheet("background:#1dacd6");
     //materialTable->getButton()->setStyleSheet("background:#3fcef8");
     connect(materialTable->getView(), SIGNAL(clicked(QModelIndex)), this, SLOT(slot_SelectModel()));
+    connect(materialTable->getSelectButton(), SIGNAL(clicked()), this, SLOT(slot_SelectAllMaterials()));
+    materialTable->getSelectButton()->setToolTip("Показать все материалы");
     materialTable->getButton()->setToolTip("Добавить материал к ветке");
     connect(materialTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_AddMaterial()));
     materials = materialTable->getView();
@@ -32,6 +34,8 @@ API::API(const QString& pathToDB, QWidget *parent) :
     modelTable = new MyTableWidget("Модели");
     modelTable->setStyleSheet("background: #1dacd6");
     connect(modelTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_add_model()));
+    connect(modelTable->getSelectButton(), SIGNAL(clicked()), this, SLOT(slot_SelectAllModels()));
+    modelTable->getSelectButton()->setToolTip("Показать все модели");
     modelTable->getButton()->setToolTip("Добавить модель");
     Model = modelTable->getView();
     Model->setAlternatingRowColors(true);
@@ -49,12 +53,16 @@ API::API(const QString& pathToDB, QWidget *parent) :
     Properties->setContextMenuPolicy(Qt::CustomContextMenu);
     Properties->setEditTriggers(QAbstractItemView::NoEditTriggers);
     connect(propertiesTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_add_properties()));
+    connect(propertiesTable->getSelectButton(), SIGNAL(clicked()), this, SLOT(slot_SelectAllProperties()));
+    propertiesTable->getSelectButton()->setDisabled(true);
     connect(Properties,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(slot_PropertiesContextMenu(const QPoint&)));
 
     localMaterialTable = new MyTableWidget("Материалы");
     localMaterialTable->setStyleSheet("background:#1cd3a2");
+    localMaterialTable->getSelectButton()->hide();
     localMaterialTable->getButton()->setToolTip("Добавить материал");
     connect(localMaterialTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_local_add_mat()));
+
     localMat = localMaterialTable->getView();
     localMat->setSelectionMode(QTableView::SelectionMode::SingleSelection);
     localMat->setModel(new QSqlQueryModel());
@@ -65,6 +73,8 @@ API::API(const QString& pathToDB, QWidget *parent) :
 
     localModelTable = new MyTableWidget("Модели");
     connect(localModelTable->getButton(),SIGNAL(clicked()),this,SLOT(slot_local_add_model()));
+    connect(localModelTable->getSelectButton(), SIGNAL(clicked()), this, SLOT(slot_SelectAllLocalModels()));
+    localModelTable->getSelectButton()->setToolTip("Показать все модели");
     localModelTable->getButton()->setToolTip("Добавить модель");
     localModelTable->setStyleSheet("background:#1cd3a2");
     localModel = localModelTable->getView();
@@ -185,10 +195,10 @@ void API::initMenu(){
     pAct_AddModel = new QAction("Добавить Модель");
     connect(pAct_AddModel,SIGNAL(triggered()),this, SLOT(slot_add_model()));
 
-    pAct_AddProp = new QAction;
-    pAct_AddProp->setDisabled(true);
+    pAct_ChangeProperty = new QAction;
+    pAct_ChangeProperty->setDisabled(true);
 
-    connect(pAct_AddProp,SIGNAL(triggered()),this, SLOT(slot_add_properties()));
+    connect(pAct_ChangeProperty,SIGNAL(triggered()),this, SLOT(slot_ChangePropertyValue()));
 
     pAct_local_MandM_Correlate =new QAction("Сопоставить материал и модель");
     connect(pAct_local_MandM_Correlate,SIGNAL(triggered()),this, SLOT(slot_LocalCorrelateMaterialAndModel()));
@@ -418,14 +428,14 @@ void API::slot_PropertiesContextMenu(const QPoint& pos){
     }
     QMenu* context_menu = new QMenu;
     if(properiesIsGlobal){
-        pAct_AddProp->setText("Добавить свойство к глобальной БД");
+        pAct_ChangeProperty->setText("Изменить свойство в глобальной БД");
         pAct_RemoveProp->setText("Удалить свойство из глобальной БД");
     }
     else{
-        pAct_AddProp->setText("Добавить свойство к локальной БД");
+        pAct_ChangeProperty->setText("Изменить свойство в локальной БД");
         pAct_RemoveProp->setText("Удалить свойство из локальной БД");
     }
-    context_menu->addAction(pAct_AddProp);
+    context_menu->addAction(pAct_ChangeProperty);
     context_menu->addAction(pAct_RemoveProp);
     context_menu->popup(Properties->mapToGlobal(pos));
 }
@@ -982,6 +992,43 @@ void API::slot_AddMaterial(){
     }
 }
 
+void API::slot_ChangePropertyValue(){
+    qDebug()<<"Изменение свойств";
+
+    ProperyValueChangeDialog inputDialog;
+    inputDialog.adjustSize();
+    inputDialog.exec();
+    if(!ProperyValueChangeDialog::needUpdate)
+        return;
+
+    float val = inputDialog.getValue();
+    QString str = "UPDATE " + QString::number(val);
+    qDebug()<<str;
+
+     if(properiesIsGlobal){
+        QSqlQuery q(globalDB);
+        if(!q.exec(str)){
+            qDebug() <<q.lastQuery();
+            qDebug() << q.lastError();
+        }
+
+        str ="SELECT name, description  FROM properties;";
+        dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery(str,globalDB);
+    }
+
+     if(!properiesIsGlobal){
+         QSqlQuery q(localDB);
+         if(!q.exec(str)){
+             qDebug() <<q.lastQuery();
+             qDebug() << q.lastError();
+         }
+
+         str ="SELECT name, description  FROM properties;";
+         dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery(str,localDB);
+     }
+
+}
+
 QString API::getFullPath(const QModelIndex& index){
       QStringList res;
       QStringList lst = index.data().toStringList();
@@ -1088,6 +1135,7 @@ void API::slot_SelectModel()
     QString str = "SELECT models_name, description FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
     globalDB.open();
     model->setQuery(str, globalDB);
+    modelTable->getLabel()->setText("Модели (" + nameMaterial + ")" );
     dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothign");
     setColumnWidth();
     pactImport->setEnabled(false);
@@ -1101,11 +1149,14 @@ void API::slot_SelectProperties()
     QString str = "select  DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     model->setQuery(str, globalDB);
     propertiesTable->getButton()->setDisabled(false);
+    propertiesTable->getSelectButton()->setDisabled(false);
     propertiesTable->setStyleSheet("background: #1dacd6");
+    propertiesTable->getLabel()->setText("Свойства (" + nameModel + ")" );
     propertiesTable->getButton()->setToolTip("Добавить свойство в глобальню таблицу");
+    propertiesTable->getSelectButton()->setToolTip("Показать все глобальные свойства");
     properiesIsGlobal = true;
     pactImport->setEnabled(true);
-    pAct_AddProp->setDisabled(false);
+    pAct_ChangeProperty->setDisabled(false);
     setColumnWidth();
 
 }
@@ -1117,6 +1168,7 @@ void API::slot_LocalSelectModel()
     QString str = "SELECT models_name, description "
                   "FROM materialsModels LEFT JOIN models ON materialsModels.models_name = models.name WHERE  materials_name ='"+ nameMaterial +"';";
     model->setQuery(str, localDB);
+    localModelTable->getLabel()->setText("Модели (" + nameMaterial + ")" );
     dynamic_cast<QSqlQueryModel*>(Properties->model())->setQuery("select from nothing");
     setColumnWidth();
 }
@@ -1128,11 +1180,14 @@ void API::slot_LocalSelectProperties()
     QString str = "select DISTINCT properties_name as property, value from  (select materials_name, models_name , propertyValueScalar.properties_name, value from  propertyValueScalar join modelComposition  on propertyValueScalar.properties_name = modelComposition.properties_name )  as allProp  join materialsModels on  allProp.materials_name = materialsModels.materials_name and allProp.models_name = materialsModels.models_name where materialsModels.models_name = '" + nameModel + "' and materialsModels.materials_name = '" + nameMaterial +"';";
     model->setQuery(str, localDB);
     qDebug() << model->lastError().text();
+    propertiesTable->getLabel()->setText("Свойства (" + nameModel + ")" );
     propertiesTable->getButton()->setToolTip("Добавить свойство в локальную таблицу");
+    propertiesTable->getSelectButton()->setToolTip("Показать все локальные свойства");
     propertiesTable->getButton()->setDisabled(false);
+    propertiesTable->getSelectButton()->setDisabled(false);
     propertiesTable->setStyleSheet("background: #1cd3a2");
     properiesIsGlobal = false;
-    pAct_AddProp->setDisabled(false);
+    pAct_ChangeProperty->setDisabled(false);
     setColumnWidth();
 }
 
@@ -1441,6 +1496,36 @@ void API::slot_Help(){
     qDebug()<<"help";
     HelpBrowser::showPage("index.html");
 }
+
+/*!!!
+ * !!!
+ * !!!
+ * TODO
+ *!!!
+ * !!!
+ * !!!
+*/
+void API::slot_SelectAllMaterials()
+{
+    qDebug()<<"выбррать все материалы";
+}
+
+void API::slot_SelectAllModels()
+{
+    qDebug()<<"выбррать все модели";
+
+}
+
+void API::slot_SelectAllProperties()
+{
+    qDebug()<<"выбррать все свойства";
+}
+
+void API::slot_SelectAllLocalModels()
+{
+    qDebug()<<"выбррать все локальные модели";
+}
+
 
 API::~API()
 {

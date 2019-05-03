@@ -28,6 +28,7 @@
 #include "propertiesvaluesetter.h"
 #include "connectiondialog.h"
 #include "helpbrowser.h"
+#include "properyvaluechangedialog.h"
 
 class API : public QMainWindow
 {
@@ -86,7 +87,7 @@ private:
     QAction* pAct_LocalAddModel;
     QAction* pAct_AddMat;
     QAction* pAct_AddModel;
-    QAction* pAct_AddProp;
+    QAction* pAct_ChangeProperty;
 
     QAction* pAct_LocalRemoveMat;
     QAction* pAct_LocalRevoveModel;
@@ -146,8 +147,11 @@ public slots:
     void slot_remove_model();
     void slot_remove_mat();
 
+    void slot_ChangePropertyValue();
+
     void slot_createConnectionDialog();
     void slot_createConnection();
+
 
     void slot_SelectMat();
     void slot_SelectModel();
@@ -178,6 +182,14 @@ public slots:
 
     void slot_About();
     void slot_Help();
+
+    //слоты для выборки всех элементов таблицы
+    void slot_SelectAllMaterials();
+    void slot_SelectAllModels();
+    void slot_SelectAllProperties();
+    void slot_SelectAllLocalModels();
+
+
 signals:
     void needUpdateTableView();
 };

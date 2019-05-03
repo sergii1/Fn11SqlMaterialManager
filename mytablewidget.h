@@ -21,6 +21,7 @@ public:
     void setModel(QSqlQueryModel* p_model);
     void setText(const QString& p_text);
     QPushButton* getButton();
+    QPushButton* getSelectButton();
     void setStyleSheet(const QString& p_qss);
 
 private:
